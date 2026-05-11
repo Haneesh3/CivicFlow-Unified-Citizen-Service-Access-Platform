@@ -1,0 +1,153 @@
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["postgresqlExtensions"]
+}
+
+datasource db {
+  provider   = "postgresql"
+  url        = env("DATABASE_URL")
+  directUrl  = env("DIRECT_URL")
+  extensions = [postgis, pgcrypto]
+}
+
+enum Role {
+  CITIZEN
+  ADMIN
+  STAFF
+}
+
+enum ComplaintStatus {
+  DRAFT
+  SUBMITTED
+  ACKNOWLEDGED
+  ASSIGNED
+  IN_PROGRESS
+  ON_HOLD
+  RESOLVED
+  REOPENED
+}
+
+model User {
+  id        String   @id @default(dbgenerated("gen_random_uuid()"))
+  phone     String?  @unique
+  email     String?  @unique
+  password  String
+  name      String
+  role      Role     @default(CITIZEN)
+  city      String?
+  wardId    String?
+  language  String   @default("en")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now()) @updatedAt
+
+  ward          Ward?          @relation(fields: [wardId], references: [id])
+  complaints         Complaint[]
+  serviceApplications ServiceApplication[]
+  notifications       Notification[]
+  auditLogs           AuditLog[]
+}
+
+
+model Ward {
+  id   String @id @default(dbgenerated("gen_random_uuid()"))
+  name String
+  geom Unsupported("geometry(Polygon, 4326)")?
+
+  users      User[]
+  complaints Complaint[]
+}
+
+model Complaint {
+  id          String          @id @default(dbgenerated("gen_random_uuid()"))
+  title       String
+  description String
+  category    String
+  status      ComplaintStatus @default(SUBMITTED)
+  userId      String
+  wardId      String?
+  geom        Unsupported("geometry(Point, 4326)")?
+  address     String?
+  imageUrl    String?         // Added for visual evidence
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @default(now()) @updatedAt
+
+
+  user        User              @relation(fields: [userId], references: [id])
+  ward        Ward?             @relation(fields: [wardId], references: [id])
+  updates     ComplaintUpdate[]
+}
+
+model ComplaintUpdate {
+  id          String          @id @default(dbgenerated("gen_random_uuid()"))
+  complaintId String
+  status      ComplaintStatus
+  comment     String?
+  createdAt   DateTime        @default(now())
+
+  complaint Complaint @relation(fields: [complaintId], references: [id])
+}
+
+model Attachment {
+  id         String   @id @default(dbgenerated("gen_random_uuid()"))
+  url        String
+  entityType String
+  entityId   String
+  createdAt  DateTime @default(now())
+}
+
+model Department {
+  id   String @id @default(dbgenerated("gen_random_uuid()"))
+  name String
+}
+
+model Service {
+  id              String  @id @default(dbgenerated("gen_random_uuid()"))
+  title           String
+  description     String
+  category        String
+  ministry        String
+  tags            String?
+  integrationType String
+  applyUrl        String?
+}
+
+model Notification {
+  id        String   @id @default(dbgenerated("gen_random_uuid()"))
+  userId    String
+  title     String
+  body      String
+  isRead    Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id])
+}
+
+enum ApplicationStatus {
+  SUBMITTED
+  UNDER_REVIEW
+  APPROVED
+  REJECTED
+  COMPLETED
+}
+
+model ServiceApplication {
+  id              String            @id @default(dbgenerated("gen_random_uuid()"))
+  serviceId       String
+  userId          String
+  applicantName   String
+  applicantPhone  String
+  data            Json              // Store form-specific data
+  status          ApplicationStatus @default(SUBMITTED)
+  referenceId     String            @unique
+  appointmentDate DateTime?         // Added for scheduling
+  appointmentSlot String?           // Added for scheduling (e.g. "10:00 AM - 11:00 AM")
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @default(now()) @updatedAt
+
+
+  user User @relation(fields: [userId], references: [id])
+}
+
+model AuditLog {
+// ...
+
