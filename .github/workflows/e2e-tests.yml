@@ -13,10 +13,10 @@ jobs:
 
     steps:
     - name: Checkout Repository
-      uses: actions/checkout@v4
+      uses: actions/checkout@v5
 
     - name: Setup Node.js Environment
-      uses: actions/setup-node@v4
+      uses: actions/setup-node@v5
       with:
         node-version: 24
         cache: 'npm'
@@ -57,14 +57,14 @@ jobs:
         echo "> Both the detailed excel reports **civicflow_comprehensive_test_report.xlsx** and **web_e2e_report.xlsx** are compiled and uploaded as build artifacts below." >> $GITHUB_STEP_SUMMARY
 
     - name: Upload Comprehensive Test Report
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v5
       with:
         name: civicflow_comprehensive_test_report
         path: e2e-tests/civicflow_comprehensive_test_report.xlsx
         if-no-files-found: warn
 
     - name: Upload Web E2E Test Report
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v5
       with:
         name: web_e2e_report
         path: e2e-tests/web_e2e_report.xlsx
