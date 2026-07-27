@@ -1,0 +1,45 @@
+name: CivicFlow E2E Testing Pipeline
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  e2e-tests:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout Repository
+      uses: actions/checkout@v4
+
+    - name: Setup Node.js Environment
+      uses: actions/setup-node@v4
+      with:
+        node-version: 20
+        cache: 'npm'
+
+    - name: Install Root Dependencies
+      run: npm install
+
+    - name: Install E2E Test Dependencies & Type Check
+      run: |
+        cd e2e-tests
+        npm install
+        npx tsc --noEmit
+
+    - name: Upload Comprehensive Test Report
+      uses: actions/upload-artifact@v4
+      with:
+        name: civicflow_comprehensive_test_report
+        path: e2e-tests/civicflow_comprehensive_test_report.xlsx
+        if-no-files-found: warn
+
+    - name: Upload Web E2E Test Report
+      uses: actions/upload-artifact@v4
+      with:
+        name: web_e2e_report
+        path: e2e-tests/web_e2e_report.xlsx
+        if-no-files-found: warn
