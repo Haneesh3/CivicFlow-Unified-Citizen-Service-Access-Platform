@@ -48,17 +48,18 @@ export default function AdminServicesQueue() {
 
   // Calculate statistics
   const total = applications?.length || 0;
-  const pending = applications?.filter((a: any) => a.status === 'PENDING').length || 0;
-  const ready = applications?.filter((a: any) => a.status === 'READY').length || 0;
+  const pending = applications?.filter((a: any) => a.status === 'SUBMITTED' || a.status === 'UNDER_REVIEW').length || 0;
+  const ready = applications?.filter((a: any) => a.status === 'APPROVED').length || 0;
   const completed = applications?.filter((a: any) => a.status === 'COMPLETED').length || 0;
   const rejected = applications?.filter((a: any) => a.status === 'REJECTED').length || 0;
 
   const getStatusBadge = (status: string) => {
     switch (status) {
-      case 'PENDING':
+      case 'SUBMITTED':
+      case 'UNDER_REVIEW':
         return <Badge className="bg-amber-100 text-amber-700 hover:bg-amber-100 border-none font-semibold">Verification Pending</Badge>;
-      case 'READY':
-        return <Badge className="bg-blue-100 text-blue-700 hover:bg-blue-100 border-none font-semibold">Ready for Pickup</Badge>;
+      case 'APPROVED':
+        return <Badge className="bg-blue-100 text-blue-700 hover:bg-blue-100 border-none font-semibold">Proceed Approved</Badge>;
       case 'COMPLETED':
         return <Badge className="bg-green-100 text-green-700 hover:bg-green-100 border-none font-semibold">Completed</Badge>;
       case 'REJECTED':
@@ -189,13 +190,13 @@ export default function AdminServicesQueue() {
                       <TableCell>{getStatusBadge(app.status)}</TableCell>
                       <TableCell className="text-right">
                         <div className="flex justify-end gap-2">
-                          {app.status === 'PENDING' && (
+                          {(app.status === 'SUBMITTED' || app.status === 'UNDER_REVIEW') && (
                             <>
                               <Button 
                                 variant="ghost" 
                                 size="sm" 
                                 className="h-8 px-2.5 text-blue-600 hover:text-blue-700 font-bold text-xs" 
-                                onClick={() => updateApplicationStatus.mutate({ id: app.id, status: 'READY', comment: 'Documents verified. Application approved.' })}
+                                onClick={() => updateApplicationStatus.mutate({ id: app.id, status: 'APPROVED', comment: 'Documents verified. Application approved to proceed.' })}
                               >
                                 <CheckCircle2 className="mr-1 h-3.5 w-3.5" /> Approve
                               </Button>
@@ -209,7 +210,7 @@ export default function AdminServicesQueue() {
                               </Button>
                             </>
                           )}
-                          {app.status === 'READY' && (
+                          {app.status === 'APPROVED' && (
                             <Button 
                               variant="ghost" 
                               size="sm" 

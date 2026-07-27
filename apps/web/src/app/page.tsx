@@ -369,6 +369,48 @@ export default function Dashboard() {
             </div>
           </div>
         </section>
+
+        {/* Section: Service Applications Tracking */}
+        <section className="rounded-[2rem] bg-white border border-zinc-200 shadow-sm overflow-hidden">
+          <div className="p-6 border-b border-zinc-100 flex items-center justify-between">
+            <div>
+              <p className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-400">Digital Services</p>
+              <h3 className="text-xl font-bold text-[var(--accent)]">Your active service applications</h3>
+            </div>
+            <Link href="/track?type=service" className="text-sm font-bold text-[var(--primary)]">Track all</Link>
+          </div>
+          <div className="divide-y divide-zinc-100">
+            {dataLoading ? (
+              [1, 2].map((i) => (
+                <div key={i} className="p-6 flex items-center justify-between animate-pulse">
+                  <div className="space-y-2 flex-1">
+                    <div className="h-4 bg-zinc-200 rounded w-1/3"></div>
+                    <div className="h-3 bg-zinc-100 rounded w-1/2"></div>
+                  </div>
+                  <div className="h-6 bg-zinc-200 rounded-full w-16"></div>
+                </div>
+              ))
+            ) : applications.length > 0 ? (
+              applications.map((app) => (
+                <div key={app.id} onClick={() => router.push(`/track?id=${app.referenceId}&type=service`)} className="p-6 flex items-center justify-between hover:bg-zinc-50 cursor-pointer">
+                  <div>
+                    <div className="font-bold text-[var(--accent)]">{app.data?.serviceTitle || 'Service Booking'}</div>
+                    <div className="text-sm text-zinc-500">{app.data?.subService} • Ref: {app.referenceId}</div>
+                  </div>
+                  <div className="text-right">
+                    <div className={`inline-flex rounded-full px-3 py-1 text-[10px] font-black uppercase tracking-[0.2em] ${
+                      app.status === 'COMPLETED' ? 'bg-green-50 text-green-700' :
+                      app.status === 'REJECTED' ? 'bg-red-50 text-red-700' : 'bg-blue-50 text-blue-700'
+                    }`}>{app.status}</div>
+                    <div className="text-[10px] text-zinc-400 mt-2">{app.appointmentDate ? new Date(app.appointmentDate).toLocaleDateString() : 'Online'}</div>
+                  </div>
+                </div>
+              ))
+            ) : (
+              <div className="p-10 text-center text-zinc-400">No active service applications. Book via the Services Hub.</div>
+            )}
+          </div>
+        </section>
       </main>
     </div>
   );
