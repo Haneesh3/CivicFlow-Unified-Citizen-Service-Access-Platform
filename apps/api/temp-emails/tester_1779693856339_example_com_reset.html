@@ -1,0 +1,161 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>CivicFlow - Password Reset Verification Code</title>
+  <style>
+    body {
+      font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+      background-color: #F8FAFC;
+      margin: 0;
+      padding: 0;
+      -webkit-font-smoothing: antialiased;
+    }
+    .wrapper {
+      width: 100%;
+      background-color: #F8FAFC;
+      padding: 40px 0;
+    }
+    .container {
+      max-width: 580px;
+      margin: 0 auto;
+      background-color: #ffffff;
+      border-radius: 16px;
+      overflow: hidden;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+      border: 1px solid #E2E8F0;
+    }
+    .header {
+      background-color: #050A44;
+      padding: 30px;
+      text-align: center;
+    }
+    .logo-text {
+      color: #ffffff;
+      font-size: 26px;
+      font-weight: 800;
+      letter-spacing: 0.5px;
+      margin: 0;
+    }
+    .gov-label {
+      color: #F97316;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 1.5px;
+      margin-top: 4px;
+      text-transform: uppercase;
+    }
+    .content {
+      padding: 40px 30px;
+      color: #334155;
+    }
+    h1 {
+      font-size: 22px;
+      font-weight: 700;
+      color: #0F172A;
+      margin-top: 0;
+      margin-bottom: 20px;
+    }
+    p {
+      font-size: 16px;
+      line-height: 24px;
+      margin-bottom: 24px;
+      color: #475569;
+    }
+    .otp-container {
+      background-color: #F0F7FF;
+      border: 1px dashed #3B82F6;
+      border-radius: 12px;
+      padding: 24px;
+      text-align: center;
+      margin: 30px 0;
+    }
+    .otp-label {
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      color: #1E3A8A;
+      margin-bottom: 8px;
+      text-transform: uppercase;
+    }
+    .otp-code {
+      font-size: 36px;
+      font-weight: 800;
+      letter-spacing: 6px;
+      color: #050A44;
+      margin: 0;
+      font-family: monospace;
+    }
+    .btn-container {
+      text-align: center;
+      margin: 30px 0;
+    }
+    .btn {
+      display: inline-block;
+      background-color: #F97316;
+      color: #ffffff !important;
+      text-decoration: none;
+      padding: 14px 30px;
+      font-size: 16px;
+      font-weight: 700;
+      border-radius: 12px;
+      box-shadow: 0 4px 6px -1px rgba(249, 115, 22, 0.2);
+      transition: background-color 0.2s;
+    }
+    .btn:hover {
+      background-color: #EA580C;
+    }
+    .footer {
+      background-color: #F1F5F9;
+      padding: 24px 30px;
+      text-align: center;
+      border-top: 1px solid #E2E8F0;
+    }
+    .footer-text {
+      font-size: 12px;
+      color: #64748B;
+      line-height: 18px;
+      margin: 0;
+    }
+    .warning-text {
+      font-size: 13px;
+      color: #EF4444;
+      margin-top: 16px;
+      font-style: italic;
+    }
+  </style>
+</head>
+<body>
+  <div class="wrapper">
+    <div class="container">
+      <div class="header">
+        <div class="logo-text">CivicFlow</div>
+        <div class="gov-label">Government of India Citizen Portal</div>
+      </div>
+      <div class="content">
+        <h1>Password Reset Request</h1>
+        <p>Dear Citizen,</p>
+        <p>We received a request to reset the password associated with your email address (<strong>tester_1779693856339@example.com</strong>). Please use the secure 6-digit verification code below to complete the reset process directly in your mobile app:</p>
+        
+        <div class="otp-container">
+          <div class="otp-label">Verification Code (OTP)</div>
+          <div class="otp-code">133715</div>
+        </div>
+
+        <p>If you are resetting your password via our web portal, you can click the button below to set a new password directly:</p>
+        
+        <div class="btn-container">
+          <a href="http://localhost:3000/reset-password?email=tester_1779693856339%40example.com&token=133715" target="_blank" class="btn">Reset Password Online</a>
+        </div>
+
+        <p class="warning-text">This code and link will expire in 15 minutes. If you did not request a password reset, please ignore this email or contact support if you have security concerns.</p>
+      </div>
+      <div class="footer">
+        <p class="footer-text">© 2026 CivicFlow Platform. All rights reserved.<br>National Citizen Service & Unified Governance Division.</p>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
+    

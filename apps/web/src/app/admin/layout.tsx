@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { 
@@ -10,25 +10,49 @@ import {
   LogOut, 
   ShieldCheck,
   Search,
-  Bell
+  Bell,
+  MessageSquare,
+  Briefcase
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { useAuthStore } from '@/lib/store';
+import { useAuthStore, useHasHydrated } from '@/lib/store';
 import { cn } from '@/lib/utils';
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
   const { logout, user } = useAuthStore();
+  const hasHydrated = useHasHydrated();
+
+  useEffect(() => {
+    if (!hasHydrated) return;
+
+    const isAdminRole = user?.role === 'ADMIN' || user?.role === 'STAFF';
+
+    if (!user || !isAdminRole) {
+      logout();
+      router.replace('/login');
+    }
+  }, [hasHydrated, logout, router, user]);
+
+  if (!hasHydrated) {
+    return (
+      <div className="flex h-screen w-screen bg-slate-50 items-center justify-center">
+        <div className="w-12 h-12 border-4 border-blue-600/20 border-t-blue-600 rounded-full animate-spin"></div>
+      </div>
+    );
+  }
 
   const handleLogout = () => {
     logout();
-    router.push('/admin/login');
+    router.push('/login');
   };
 
   const menuItems = [
     { name: 'Dashboard', icon: LayoutDashboard, href: '/admin/dashboard' },
     { name: 'Issue Queue', icon: ListTodo, href: '/admin/queue' },
+    { name: 'Service Queue', icon: Briefcase, href: '/admin/services' },
+    { name: 'Citizen Response', icon: MessageSquare, href: '/admin/response' },
     { name: 'Analytics', icon: Search, href: '/admin/analytics' },
     { name: 'Settings', icon: Settings, href: '/admin/settings' },
   ];

@@ -2,12 +2,15 @@
 
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { supabase } from '@/lib/supabase';
 import { useAuthStore } from '@/lib/store';
+import { api } from '@/lib/api';
 import * as LucideIcons from 'lucide-react';
+import { getIpLocation, calculateDistance, DEFAULT_COORDS } from '@/lib/location';
+
+type IconComponent = React.ComponentType<{ size?: number; className?: string }>;
 
 // Safe Icon Lookup Map to avoid shadowing browser globals like Image, Option, etc.
-const ICON_MAP: Record<string, any> = {
+const ICON_MAP: Record<string, IconComponent> = {
   'aadhaar': LucideIcons.UserCheck,
   'voter': LucideIcons.User,
   'passport': LucideIcons.ShieldCheck,
@@ -37,19 +40,90 @@ const ICON_MAP: Record<string, any> = {
   'map-pin': LucideIcons.MapPin,
   'building': LucideIcons.Building2,
   'alert': LucideIcons.AlertTriangle,
-  'arrow-right': LucideIcons.ArrowRight
+  'arrow-right': LucideIcons.ArrowRight,
+  'layout-dashboard': LucideIcons.LayoutDashboard,
+  'clipboard-list': LucideIcons.ClipboardList,
+  'user-cog': LucideIcons.UserCog,
+  'bar-chart': LucideIcons.BarChart3,
+  'bell-ring': LucideIcons.BellRing,
+  'shield': LucideIcons.ShieldCheck,
+  'users': LucideIcons.Users,
+  'digilocker': LucideIcons.CloudLightning,
+  'msme': LucideIcons.Building2,
+  'cyber': LucideIcons.ShieldAlert,
+  'digital': LucideIcons.Globe
 };
 
-const CATEGORIES = ['All', 'Identity', 'Certificates', 'Property', 'Utilities', 'Transport', 'Healthcare', 'Welfare', 'Business'];
+type RoleView = 'user' | 'admin';
 
-const CENTERS = [
+type ServiceOption = {
+  id: string;
+  label: string;
+  docs: string[];
+  totalTime: string;
+};
+
+type ServiceCenter = {
+  id: string;
+  name: string;
+  location: string;
+  distance: string;
+  staff: string;
+};
+
+type CitizenService = {
+  id: string;
+  category: string;
+  title: string;
+  description: string;
+  iconKey: string;
+  color: string;
+  bg: string;
+  details: string;
+  portalUrl: string;
+  officeTime: string;
+  options: ServiceOption[];
+};
+
+type AdminService = {
+  id: string;
+  category: string;
+  title: string;
+  description: string;
+  iconKey: string;
+  color: string;
+  bg: string;
+  href: string;
+  action: string;
+};
+
+const getRoleView = (role?: string): RoleView => {
+  const normalizedRole = role?.toUpperCase();
+  return normalizedRole === 'ADMIN' || normalizedRole === 'STAFF' || normalizedRole === 'OFFICER' ? 'admin' : 'user';
+};
+
+const getCategories = (services: { category: string }[]) => ['All', ...Array.from(new Set(services.map(service => service.category)))];
+
+function RenderIcon({ name, size = 24, className = "" }: { name: string, size?: number, className?: string }) {
+  const IconComp = ICON_MAP[name] || ICON_MAP['info'];
+  return <IconComp size={size} className={className} />;
+}
+
+const CENTERS: ServiceCenter[] = [
   { id: 'c1', name: 'Zonal Office - South Delhi', location: 'Saket', distance: '2.4 km', staff: 'Officer Rajesh Kumar' },
   { id: 'c2', name: 'Passport Seva Kendra (PSK)', location: 'R.K. Puram', distance: '4.8 km', staff: 'Officer Meera Singh' },
   { id: 'c3', name: 'Citizen Resource Center', location: 'Okhla Phase III', distance: '1.2 km', staff: 'Officer Amit Sharma' },
   { id: 'c4', name: 'Municipal HQ', location: 'Civic Center', distance: '8.5 km', staff: 'Officer Sunita Rao' }
 ];
 
-const SERVICES = [
+const CENTERS_WITH_COORDS = [
+  { id: 'c1', name: 'Zonal Office - South Delhi', location: 'Saket', lat: 28.5276, lng: 77.2197, staff: 'Officer Rajesh Kumar' },
+  { id: 'c2', name: 'Passport Seva Kendra (PSK)', location: 'R.K. Puram', lat: 28.5708, lng: 77.1770, staff: 'Officer Meera Singh' },
+  { id: 'c3', name: 'Citizen Resource Center', location: 'Okhla Phase III', lat: 28.5442, lng: 77.2721, staff: 'Officer Amit Sharma' },
+  { id: 'c4', name: 'Municipal HQ', location: 'Civic Center', lat: 28.6369, lng: 77.2246, staff: 'Officer Sunita Rao' }
+];
+
+const SERVICES: CitizenService[] = [
   { 
     id: 'aadhaar', 
     category: 'Identity',
@@ -298,6 +372,136 @@ const SERVICES = [
     options: [
       { id: 'new', label: 'New License', docs: ['Rent Deed', 'NOC', 'Photo'], totalTime: '15 Days' }
     ]
+  },
+  { 
+    id: 'digilocker', 
+    category: 'Digital Governance',
+    title: 'DigiLocker Services', 
+    description: 'Access and share authentic digital documents instantly.', 
+    iconKey: 'digilocker', 
+    color: 'text-cyan-600', 
+    bg: 'bg-cyan-50',
+    details: 'MeitY cloud document verification.',
+    portalUrl: 'https://www.digilocker.gov.in/',
+    officeTime: 'Online Only',
+    options: [
+      { id: 'fetch', label: 'Retrieve Document', docs: ['Aadhaar', 'Mobile Link'], totalTime: 'Instant' },
+      { id: 'upload', label: 'Upload Self-Attested', docs: ['PDF/Image file'], totalTime: 'Instant' }
+    ]
+  },
+  { 
+    id: 'udyam', 
+    category: 'Digital Governance',
+    title: 'Udyam MSME', 
+    description: 'Register micro, small, and medium businesses online.', 
+    iconKey: 'msme', 
+    color: 'text-purple-600', 
+    bg: 'bg-purple-50',
+    details: 'Ministry of MSME official registry.',
+    portalUrl: 'https://udyamregistration.gov.in/',
+    officeTime: '10 mins',
+    options: [
+      { id: 'register', label: 'MSME Registration', docs: ['Aadhaar', 'PAN', 'GSTIN (optional)'], totalTime: '2 Days' }
+    ]
+  },
+  { 
+    id: 'cybercrime', 
+    category: 'Digital Governance',
+    title: 'Cyber Crime Desk', 
+    description: 'Report financial frauds, identity thefts, or online harassment.', 
+    iconKey: 'cyber', 
+    color: 'text-red-600', 
+    bg: 'bg-red-50',
+    details: 'National Cyber Crime Reporting Portal.',
+    portalUrl: 'https://cybercrime.gov.in/',
+    officeTime: '15 mins',
+    options: [
+      { id: 'report', label: 'File Cyber Complaint', docs: ['Transaction Proof', 'ID Proof', 'Evidence Screenshot'], totalTime: '24 Hours' }
+    ]
+  },
+  { 
+    id: 'mygov', 
+    category: 'Digital Governance',
+    title: 'MyGov Engagement', 
+    description: 'Participate in policymaking, survey polls, and citizen discussions.', 
+    iconKey: 'digital', 
+    color: 'text-orange-600', 
+    bg: 'bg-orange-50',
+    details: 'Direct citizen-government dialogue platform.',
+    portalUrl: 'https://www.mygov.in/',
+    officeTime: 'Online Only',
+    options: [
+      { id: 'poll', label: 'Participate in Poll', docs: ['Mobile Number'], totalTime: 'Instant' }
+    ]
+  }
+];
+
+const ADMIN_SERVICES: AdminService[] = [
+  {
+    id: 'admin-dashboard',
+    category: 'Governance',
+    title: 'Operations Dashboard',
+    description: 'Monitor complaint volume, pending work, resolutions, and citizen activity.',
+    iconKey: 'layout-dashboard',
+    color: 'text-blue-600',
+    bg: 'bg-blue-50',
+    href: '/admin/dashboard',
+    action: 'Open Dashboard'
+  },
+  {
+    id: 'issue-queue',
+    category: 'Resolution',
+    title: 'Issue Resolution Queue',
+    description: 'Review citizen reports, move cases into progress, close issues, or reopen them.',
+    iconKey: 'clipboard-list',
+    color: 'text-orange-600',
+    bg: 'bg-orange-50',
+    href: '/admin/queue',
+    action: 'Manage Queue'
+  },
+  {
+    id: 'service-applications',
+    category: 'Services',
+    title: 'Service Applications',
+    description: 'Track service bookings, appointment readiness, and document verification queues.',
+    iconKey: 'briefcase',
+    color: 'text-emerald-600',
+    bg: 'bg-emerald-50',
+    href: '/admin/dashboard',
+    action: 'Review Requests'
+  },
+  {
+    id: 'service-centers',
+    category: 'Centers',
+    title: 'Service Center Control',
+    description: 'Coordinate center load, staff availability, service windows, and field coverage.',
+    iconKey: 'building',
+    color: 'text-indigo-600',
+    bg: 'bg-indigo-50',
+    href: '/admin/dashboard',
+    action: 'View Centers'
+  },
+  {
+    id: 'citizen-support',
+    category: 'Support',
+    title: 'Citizen Support Desk',
+    description: 'Review citizen assistance needs, escalations, reminders, and public notices.',
+    iconKey: 'bell-ring',
+    color: 'text-rose-600',
+    bg: 'bg-rose-50',
+    href: '/admin/queue',
+    action: 'Open Desk'
+  },
+  {
+    id: 'staff-access',
+    category: 'Governance',
+    title: 'Role & Staff Oversight',
+    description: 'Keep admin work separated from citizen services with role-scoped access.',
+    iconKey: 'user-cog',
+    color: 'text-slate-600',
+    bg: 'bg-slate-50',
+    href: '/admin/dashboard',
+    action: 'Review Access'
   }
 ];
 
@@ -317,11 +521,54 @@ const PUBLIC_HOLIDAYS = [
 
 export default function ServicesPage() {
   const router = useRouter();
+  const [centers, setCenters] = useState<ServiceCenter[]>(CENTERS);
+
+  useEffect(() => {
+    async function resolveCenters() {
+      const ipstackKey = process.env.NEXT_PUBLIC_IPSTACK_API_KEY;
+      let coords = DEFAULT_COORDS;
+      
+      if (ipstackKey) {
+        const ipLocation = await getIpLocation(ipstackKey);
+        coords = { latitude: ipLocation.latitude, longitude: ipLocation.longitude };
+      }
+
+      const calculated = CENTERS_WITH_COORDS.map(center => {
+        const dist = calculateDistance(coords.latitude, coords.longitude, center.lat, center.lng);
+        return {
+          id: center.id,
+          name: center.name,
+          location: center.location,
+          distance: `${dist.toFixed(1)} km`,
+          staff: center.staff
+        };
+      }).sort((a, b) => parseFloat(a.distance) - parseFloat(b.distance));
+
+      setCenters(calculated);
+    }
+    resolveCenters();
+  }, []);
   const { user } = useAuthStore();
+  const roleView = getRoleView(user?.role);
+  const serviceCatalog = roleView === 'admin' ? ADMIN_SERVICES : SERVICES;
+  const categories = getCategories(serviceCatalog);
+  const pageCopy = roleView === 'admin'
+    ? {
+        title: 'Admin Services',
+        accent: 'Control Center',
+        description: 'Access staff tools for issue resolution, service operations, citizen support, and governance oversight.',
+        badge: 'Admin Role'
+      }
+    : {
+        title: 'User Services',
+        accent: 'Gateway',
+        description: 'Access government services through a single window. Locate centers, book slots, and track delivery.',
+        badge: 'User Role'
+      };
   
-  const [selectedService, setSelectedService] = useState<any>(null);
-  const [selectedOption, setSelectedOption] = useState<any>(null);
-  const [selectedCenter, setSelectedCenter] = useState<any>(null);
+  const [selectedService, setSelectedService] = useState<CitizenService | null>(null);
+  const [selectedOption, setSelectedOption] = useState<ServiceOption | null>(null);
+  const [selectedCenter, setSelectedCenter] = useState<ServiceCenter | null>(null);
   const [activeCategory, setActiveCategory] = useState('All');
   const [searchQuery, setSearchQuery] = useState('');
   
@@ -330,6 +577,7 @@ export default function ServicesPage() {
   const [appointment, setAppointment] = useState({ date: '', slot: '' });
   const [refId, setRefId] = useState('');
   const [holidayError, setHolidayError] = useState('');
+  const currentCategory = categories.includes(activeCategory) ? activeCategory : 'All';
 
   const checkHoliday = (dateString: string) => {
     if (!dateString) return;
@@ -347,26 +595,24 @@ export default function ServicesPage() {
     setHolidayError('');
   };
 
-  const filteredServices = SERVICES.filter(s => 
-    (activeCategory === 'All' || s.category === activeCategory) &&
+  const filteredServices = serviceCatalog.filter(s => 
+    (currentCategory === 'All' || s.category === currentCategory) &&
     (s.title.toLowerCase().includes(searchQuery.toLowerCase()) || s.description.toLowerCase().includes(searchQuery.toLowerCase()))
   );
 
   const handleApply = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!user) return;
+    if (!user || !selectedService || !selectedOption) return;
     
     setLoading(true);
-    const newRefId = `CF-${selectedService.id.toUpperCase()}-${Math.random().toString(36).substring(2, 8).toUpperCase()}`;
     
     try {
-      const { error } = await supabase.from('ServiceApplication').insert({
-        id: crypto.randomUUID(),
+      const response = await api.post('/services/applications', {
         serviceId: selectedService.id,
-        userId: user.id,
+        subServiceId: selectedOption.id,
+        serviceCenterId: selectedCenter?.id || null,
         applicantName: user.name,
-        applicantPhone: 'Verified',
-        referenceId: newRefId,
+        applicantPhone: user.phone || '9999999999',
         appointmentDate: appointment.date || null,
         appointmentSlot: appointment.slot || null,
         data: {
@@ -379,8 +625,7 @@ export default function ServicesPage() {
         }
       });
 
-      if (error) throw error;
-      setRefId(newRefId);
+      setRefId(response.data.referenceId);
       setStep(5);
     } catch (err) {
       console.error('Submission failed:', err);
@@ -399,11 +644,6 @@ export default function ServicesPage() {
     setHolidayError('');
   };
 
-  const RenderIcon = ({ name, size = 24, className = "" }: { name: string, size?: number, className?: string }) => {
-    const IconComp = ICON_MAP[name] || ICON_MAP['info'];
-    return <IconComp size={size} className={className} />;
-  };
-
   return (
     <div className="min-h-screen bg-[#f8f9fa] font-sans pb-20">
       <nav className="bg-white border-b border-zinc-200 px-6 py-4 flex items-center justify-between sticky top-0 z-50">
@@ -418,8 +658,13 @@ export default function ServicesPage() {
       <main className="max-w-7xl mx-auto px-6 py-12">
         {/* Search Header */}
         <div className="mb-12 text-center space-y-6">
-           <h2 className="text-5xl font-black text-[#000080] tracking-tight">National <span className="text-[#FF9933]">e-Governance</span> Gateway</h2>
-           <p className="text-zinc-500 text-lg max-w-2xl mx-auto">Access 50+ government services through a single window. Locate centers, book slots, and track delivery.</p>
+           <div className="inline-flex items-center gap-2 bg-white border border-zinc-100 rounded-full px-5 py-2 shadow-sm text-[#000080]">
+             <RenderIcon name={roleView === 'admin' ? 'shield' : 'user'} size={16} />
+             <span className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-400">Role</span>
+             <span className="text-xs font-black uppercase tracking-[0.2em] text-[#FF9933]">{pageCopy.badge}</span>
+           </div>
+           <h2 className="text-5xl font-black text-[#000080] tracking-tight">{pageCopy.title} <span className="text-[#FF9933]">{pageCopy.accent}</span></h2>
+           <p className="text-zinc-500 text-lg max-w-2xl mx-auto">{pageCopy.description}</p>
            
            <div className="max-w-3xl mx-auto pt-6">
               <div className="relative group">
@@ -428,7 +673,7 @@ export default function ServicesPage() {
                 </div>
                 <input 
                   type="text" 
-                  placeholder="Search Identity, Transport, Property, Health..."
+                  placeholder={roleView === 'admin' ? 'Search queue, dashboard, staff, center...' : 'Search Identity, Transport, Property, Health...'}
                   className="w-full bg-white border-2 border-zinc-100 rounded-[2.5rem] py-8 pl-20 pr-8 focus:ring-12 focus:ring-[#FF9933]/5 focus:border-[#FF9933] outline-none transition-all shadow-2xl font-bold text-xl placeholder:text-zinc-300"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
@@ -439,12 +684,12 @@ export default function ServicesPage() {
 
         {/* Category Filter */}
         <div className="flex flex-wrap items-center justify-center gap-4 mb-16">
-          {CATEGORIES.map(cat => (
+          {categories.map(cat => (
             <button
               key={cat}
               onClick={() => setActiveCategory(cat)}
               className={`px-10 py-4 rounded-2xl text-xs font-black uppercase tracking-widest transition-all border-2 ${
-                activeCategory === cat 
+                currentCategory === cat 
                 ? 'bg-[#000080] text-white border-[#000080] shadow-2xl shadow-navy/20 translate-y-[-2px]' 
                 : 'bg-white text-zinc-400 border-zinc-50 hover:border-[#FF9933] hover:text-[#FF9933]'
               }`}
@@ -460,6 +705,10 @@ export default function ServicesPage() {
             <div 
               key={service.id} 
               onClick={() => {
+                if ('href' in service) {
+                  router.push(service.href);
+                  return;
+                }
                 setSelectedService(service);
                 setStep(1);
               }}
@@ -476,7 +725,7 @@ export default function ServicesPage() {
               
               <div className="flex items-center justify-between pt-8 border-t border-zinc-50">
                 <div className="flex items-center gap-2 text-[#000080] font-black text-[10px] uppercase tracking-[0.2em]">
-                  Book Center <RenderIcon name="arrow-right" size={16} className="group-hover:translate-x-2 transition-transform" />
+                  {'action' in service ? service.action : 'Book Center'} <RenderIcon name="arrow-right" size={16} className="group-hover:translate-x-2 transition-transform" />
                 </div>
                 <div className="text-[10px] font-black text-zinc-200 tracking-widest uppercase">Verified</div>
               </div>
@@ -484,6 +733,13 @@ export default function ServicesPage() {
             </div>
           ))}
         </div>
+
+        {filteredServices.length === 0 && (
+          <div className="bg-white border border-zinc-100 rounded-[2rem] p-12 text-center shadow-sm">
+            <p className="text-[#000080] font-black text-xl">No services found</p>
+            <p className="text-zinc-500 mt-2">Try a different search or category.</p>
+          </div>
+        )}
       </main>
 
       {/* Multi-Step Modal */}
@@ -543,7 +799,7 @@ export default function ServicesPage() {
                 <div className="space-y-8 animate-fade-in">
                   <h4 className="text-[10px] font-black uppercase tracking-widest text-zinc-400">What do you want to update?</h4>
                   <div className="grid grid-cols-1 gap-4">
-                    {selectedService.options.map((opt: any) => (
+                    {selectedService.options.map((opt) => (
                       <button 
                         key={opt.id}
                         onClick={() => {
@@ -576,7 +832,7 @@ export default function ServicesPage() {
                      <span className="text-[10px] font-black text-blue-600 bg-white px-4 py-2 rounded-full uppercase tracking-widest shadow-sm">Location Active</span>
                   </div>
                   <div className="grid grid-cols-1 gap-4">
-                    {CENTERS.map(center => (
+                    {centers.map(center => (
                       <button 
                         key={center.id}
                         onClick={() => {
@@ -658,7 +914,7 @@ export default function ServicesPage() {
                        <h4 className="text-[10px] font-black uppercase tracking-widest text-[#FF9933]">Pre-Visit Checklist</h4>
                     </div>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                      {selectedOption.docs.map((doc: string) => (
+                      {(selectedOption?.docs ?? []).map((doc) => (
                         <div key={doc} className="flex items-center gap-4 text-[#000080] font-black text-sm bg-white p-5 rounded-2xl shadow-sm border border-orange-100/10">
                           <RenderIcon name="check" size={18} className="text-[#138808]" />
                           {doc}
@@ -712,10 +968,10 @@ export default function ServicesPage() {
                               <RenderIcon name="alert" size={24} /> Critical Instructions
                            </div>
                            <ul className="space-y-4 text-sm text-[#000080]/70 font-bold leading-relaxed">
-                              <li className="flex items-start gap-3"><span className="text-[#138808]">✓</span> Carry all {selectedOption.docs.length} original documents.</li>
+                              <li className="flex items-start gap-3"><span className="text-[#138808]">✓</span> Carry all {selectedOption?.docs.length ?? 0} original documents.</li>
                               <li className="flex items-start gap-3"><span className="text-[#138808]">✓</span> Reach by {appointment.slot.split(' - ')[0]}.</li>
                               <li className="flex items-start gap-3"><span className="text-[#138808]">✓</span> Office Processing: <span className="text-[#FF9933]">{selectedService.officeTime}</span>.</li>
-                              <li className="flex items-start gap-3"><span className="text-[#138808]">✓</span> Update Delivery: <span className="text-[#FF9933]">{selectedOption.totalTime}</span>.</li>
+                              <li className="flex items-start gap-3"><span className="text-[#138808]">✓</span> Update Delivery: <span className="text-[#FF9933]">{selectedOption?.totalTime}</span>.</li>
                            </ul>
                         </div>
                     </div>

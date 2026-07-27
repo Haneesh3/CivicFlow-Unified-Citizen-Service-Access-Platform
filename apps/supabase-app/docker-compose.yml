@@ -1,0 +1,30 @@
+version: '3.8'
+
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    ports:
+      - '4000:4000'
+    environment:
+      - PORT=4000
+      - SUPABASE_URL=${SUPABASE_URL}
+      - SUPABASE_SERVICE_ROLE_KEY=${SUPABASE_SERVICE_ROLE_KEY}
+      - SUPABASE_ANON_KEY=${SUPABASE_ANON_KEY}
+    depends_on:
+      - db
+
+  db:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_USER=supabase_admin
+      POSTGRES_PASSWORD=supersecret
+      POSTGRES_DB=supabase_app
+    ports:
+      - '5434:5432'
+    volumes:
+      - supabase_pgdata:/var/lib/postgresql/data
+
+volumes:
+  supabase_pgdata:

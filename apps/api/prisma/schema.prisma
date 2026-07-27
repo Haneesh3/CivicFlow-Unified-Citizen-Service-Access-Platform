@@ -28,7 +28,7 @@ enum ComplaintStatus {
 }
 
 model User {
-  id        String   @id @default(dbgenerated("gen_random_uuid()"))
+  id        String   @id @default(uuid())
   phone     String?  @unique
   email     String?  @unique
   password  String
@@ -37,6 +37,8 @@ model User {
   city      String?
   wardId    String?
   language  String   @default("en")
+  resetToken        String?
+  resetTokenExpires DateTime?
   createdAt DateTime @default(now())
   updatedAt DateTime @default(now()) @updatedAt
 
@@ -49,7 +51,7 @@ model User {
 
 
 model Ward {
-  id   String @id @default(dbgenerated("gen_random_uuid()"))
+  id   String @id @default(uuid())
   name String
   geom Unsupported("geometry(Polygon, 4326)")?
 
@@ -58,7 +60,7 @@ model Ward {
 }
 
 model Complaint {
-  id          String          @id @default(dbgenerated("gen_random_uuid()"))
+  id          String          @id @default(uuid())
   title       String
   description String
   category    String
@@ -68,6 +70,8 @@ model Complaint {
   geom        Unsupported("geometry(Point, 4326)")?
   address     String?
   imageUrl    String?         // Added for visual evidence
+  rating      Int?
+  ratingComment String?
   createdAt   DateTime        @default(now())
   updatedAt   DateTime        @default(now()) @updatedAt
 
@@ -78,7 +82,7 @@ model Complaint {
 }
 
 model ComplaintUpdate {
-  id          String          @id @default(dbgenerated("gen_random_uuid()"))
+  id          String          @id @default(uuid())
   complaintId String
   status      ComplaintStatus
   comment     String?
@@ -88,7 +92,7 @@ model ComplaintUpdate {
 }
 
 model Attachment {
-  id         String   @id @default(dbgenerated("gen_random_uuid()"))
+  id         String   @id @default(uuid())
   url        String
   entityType String
   entityId   String
@@ -96,23 +100,47 @@ model Attachment {
 }
 
 model Department {
-  id   String @id @default(dbgenerated("gen_random_uuid()"))
+  id   String @id @default(uuid())
   name String
 }
 
 model Service {
-  id              String  @id @default(dbgenerated("gen_random_uuid()"))
-  title           String
+  id              String  @id @default(uuid())
+  title           String  @unique
   description     String
   category        String
   ministry        String
   tags            String?
   integrationType String
   applyUrl        String?
+  
+  subServices     SubService[]
+  serviceCenters  ServiceCenter[]
+}
+
+model SubService {
+  id                String   @id @default(uuid())
+  serviceId         String
+  name              String
+  description       String?
+  requiredDocuments String[] // Array of document names
+  
+  service Service @relation(fields: [serviceId], references: [id])
+}
+
+model ServiceCenter {
+  id        String @id @default(uuid())
+  serviceId String
+  name      String
+  address   String
+  lat       Float?
+  lng       Float?
+  
+  service Service @relation(fields: [serviceId], references: [id])
 }
 
 model Notification {
-  id        String   @id @default(dbgenerated("gen_random_uuid()"))
+  id        String   @id @default(uuid())
   userId    String
   title     String
   body      String
@@ -130,24 +158,51 @@ enum ApplicationStatus {
   COMPLETED
 }
 
+model Holiday {
+  id    String   @id @default(uuid())
+  date  DateTime @unique
+  name  String
+}
+
 model ServiceApplication {
-  id              String            @id @default(dbgenerated("gen_random_uuid()"))
+  id              String            @id @default(uuid())
   serviceId       String
   userId          String
+  subServiceId    String?
+  serviceCenterId String?
   applicantName   String
   applicantPhone  String
-  data            Json              // Store form-specific data
+  data            Json
   status          ApplicationStatus @default(SUBMITTED)
   referenceId     String            @unique
-  appointmentDate DateTime?         // Added for scheduling
-  appointmentSlot String?           // Added for scheduling (e.g. "10:00 AM - 11:00 AM")
+  appointmentDate DateTime?
+  appointmentSlot String?
   createdAt       DateTime          @default(now())
   updatedAt       DateTime          @default(now()) @updatedAt
 
-
   user User @relation(fields: [userId], references: [id])
+  updates ServiceApplicationUpdate[]
+}
+
+model ServiceApplicationUpdate {
+  id              String            @id @default(uuid())
+  applicationId   String
+  status          ApplicationStatus
+  message         String
+  createdAt       DateTime          @default(now())
+
+  application     ServiceApplication @relation(fields: [applicationId], references: [id])
 }
 
 model AuditLog {
-// ...
+  id         String   @id @default(uuid())
+  userId     String
+  action     String
+  entityType String
+  entityId   String
+  details    Json?
+  createdAt  DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id])
+}
 

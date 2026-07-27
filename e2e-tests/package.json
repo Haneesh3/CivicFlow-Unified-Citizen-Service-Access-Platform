@@ -1,0 +1,22 @@
+{
+  "name": "e2e-tests",
+  "version": "1.0.0",
+  "description": "E2E Testing Suite for CivicFlow Web and Mobile apps",
+  "main": "index.js",
+  "scripts": {
+    "test:web": "ts-node selenium/webTest.ts",
+    "test:mobile": "ts-node appium/mobileTest.ts",
+    "generate:excel": "ts-node selenium/generate_test_cases_excel.ts"
+  },
+  "dependencies": {
+    "exceljs": "^4.4.0",
+    "selenium-webdriver": "^4.22.0",
+    "webdriverio": "^8.39.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.0",
+    "@types/selenium-webdriver": "^4.1.20",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.3.3"
+  }
+}

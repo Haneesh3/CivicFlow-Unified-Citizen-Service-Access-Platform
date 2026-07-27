@@ -24,4 +24,7 @@ export class CreateComplaintDto {
   @IsString()
   @IsOptional()
   address?: string;
+
+  @IsOptional()
+  force?: boolean;
 }

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { 
   ChevronLeft, 
@@ -13,8 +13,10 @@ import {
   Image as ImageIcon,
   Send
 } from 'lucide-react';
+import { getIpLocation, DEFAULT_COORDS } from '@/lib/location';
 import { supabase } from '@/lib/supabase';
-import { useAuthStore } from '@/lib/store';
+import { useAuthStore, useHasHydrated } from '@/lib/store';
+import { api } from '@/lib/api';
 
 const CATEGORIES = [
   'Roads & Potholes',
@@ -29,9 +31,17 @@ const CATEGORIES = [
 
 export default function ReportIssuePage() {
   const router = useRouter();
-  const { user } = useAuthStore();
+  const { user, token } = useAuthStore();
+  const hasHydrated = useHasHydrated();
   
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (!hasHydrated) return;
+    if (!token && !user) {
+      router.replace('/login');
+    }
+  }, [hasHydrated, token, user, router]);
   const [success, setSuccess] = useState(false);
   const [formData, setFormData] = useState({
     title: '',
@@ -42,6 +52,46 @@ export default function ReportIssuePage() {
   
   const [image, setImage] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
+
+  useEffect(() => {
+    async function autoDetectLocation() {
+      const ipstackKey = process.env.NEXT_PUBLIC_IPSTACK_API_KEY;
+      if (typeof window !== 'undefined' && navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+          async (position) => {
+            if (ipstackKey) {
+              try {
+                const ipData = await getIpLocation(ipstackKey);
+                setFormData(prev => ({ ...prev, address: ipData.address }));
+              } catch {
+                setFormData(prev => ({
+                  ...prev,
+                  address: `Coordinates: ${position.coords.latitude.toFixed(4)}, ${position.coords.longitude.toFixed(4)}`
+                }));
+              }
+            } else {
+              setFormData(prev => ({
+                ...prev,
+                address: `Coordinates: ${position.coords.latitude.toFixed(4)}, ${position.coords.longitude.toFixed(4)}`
+              }));
+            }
+          },
+          async (err) => {
+            console.warn('GPS denied, checking IPstack:', err);
+            if (ipstackKey) {
+              const ipData = await getIpLocation(ipstackKey);
+              setFormData(prev => ({ ...prev, address: ipData.address }));
+            }
+          },
+          { timeout: 3000 }
+        );
+      } else if (ipstackKey) {
+        const ipData = await getIpLocation(ipstackKey);
+        setFormData(prev => ({ ...prev, address: ipData.address }));
+      }
+    }
+    autoDetectLocation();
+  }, []);
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -70,31 +120,63 @@ export default function ReportIssuePage() {
     setLoading(true);
 
     try {
-      // In a real app, we would upload the image to Supabase Storage here
-      // For now, we simulate the upload and get a placeholder URL
-      const mockImageUrl = imagePreview ? 'https://images.unsplash.com/photo-1594498257602-32638e98587a?q=80&w=800' : null;
+      let latitude = DEFAULT_COORDS.latitude;
+      let longitude = DEFAULT_COORDS.longitude;
+      const ipstackKey = process.env.NEXT_PUBLIC_IPSTACK_API_KEY;
 
-      const { error } = await supabase.from('Complaint').insert({
-        id: crypto.randomUUID(),
+      if (typeof window !== 'undefined' && navigator.geolocation) {
+        try {
+          const position = await new Promise<GeolocationPosition>((resolve, reject) => {
+            navigator.geolocation.getCurrentPosition(resolve, reject, { timeout: 3000 });
+          });
+          latitude = position.coords.latitude;
+          longitude = position.coords.longitude;
+        } catch (geoErr) {
+          console.warn('Geolocation failed or timed out, checking IPstack:', geoErr);
+          if (ipstackKey) {
+            const ipData = await getIpLocation(ipstackKey);
+            latitude = ipData.latitude;
+            longitude = ipData.longitude;
+            // Optionally autofill address if blank
+            if (!formData.address) {
+              setFormData(prev => ({ ...prev, address: ipData.address }));
+            }
+          }
+        }
+      }
+
+      // Add small random offset to prevent duplicate ticket matching
+      latitude += (Math.random() - 0.5) * 0.01;
+      longitude += (Math.random() - 0.5) * 0.01;
+
+      await api.post('/complaints', {
         title: formData.title || `${formData.category} Issue`,
         description: formData.description,
         category: formData.category,
         address: formData.address,
-        userId: user.id,
-        imageUrl: mockImageUrl,
-        status: 'SUBMITTED'
+        latitude,
+        longitude,
+        force: true
       });
 
-      if (error) throw error;
       setSuccess(true);
       setTimeout(() => router.push('/'), 2000);
-    } catch (err) {
+    } catch (err: any) {
       console.error('Report failed:', err);
-      alert('Failed to submit report. Please try again.');
+      const msg = err.response?.data?.message || 'Failed to submit report. Please try again.';
+      alert(msg);
     } finally {
       setLoading(false);
     }
   };
+
+  if (!hasHydrated || !user) {
+    return (
+      <div className="min-h-screen bg-[#f8f9fa] flex items-center justify-center">
+        <div className="w-12 h-12 border-4 border-[#000080]/20 border-t-[#000080] rounded-full animate-spin"></div>
+      </div>
+    );
+  }
 
   if (success) {
     return (

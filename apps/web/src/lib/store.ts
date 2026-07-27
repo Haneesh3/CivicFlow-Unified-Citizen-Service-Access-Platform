@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import { useState, useEffect } from 'react';
 
 interface User {
   id: string;
@@ -7,6 +8,8 @@ interface User {
   email?: string;
   phone?: string;
   role: 'CITIZEN' | 'ADMIN' | 'STAFF';
+  city?: string;
+  language?: string;
 }
 
 interface AuthState {
@@ -41,3 +44,14 @@ export const useAuthStore = create<AuthState>()(
     }
   )
 );
+
+export function useHasHydrated() {
+  const [hasHydrated, setHasHydrated] = useState(false);
+
+  useEffect(() => {
+    setHasHydrated(true);
+  }, []);
+
+  return hasHydrated;
+}
+

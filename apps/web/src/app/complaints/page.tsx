@@ -2,39 +2,62 @@
 
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { supabase } from '@/lib/supabase';
+import { useAuthStore, useHasHydrated } from '@/lib/store';
+import { useRouter } from 'next/navigation';
+import { api } from '@/lib/api';
 import { 
   MapPin, 
   ChevronLeft, 
-  Search,
-  Filter,
-  Plus,
-  Navigation
+  Search, 
+  Filter, 
+  Plus, 
+  Navigation 
 } from 'lucide-react';
 
-
 export default function IssuesPage() {
+  const router = useRouter();
+  const { user, token } = useAuthStore();
+  const hasHydrated = useHasHydrated();
+
   const [complaints, setComplaints] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
 
   useEffect(() => {
-    async function fetchData() {
-      const { data, error } = await supabase
-        .from('Complaint')
-        .select('*')
-        .order('createdAt', { ascending: false });
-      
-      if (!error) setComplaints(data || []);
-      setLoading(false);
+    if (!hasHydrated) return;
+    if (!token && !user) {
+      router.replace('/login');
     }
-    fetchData();
-  }, []);
+  }, [hasHydrated, token, user, router]);
+
+  useEffect(() => {
+    async function fetchData() {
+      try {
+        const response = await api.get('/complaints');
+        setComplaints(response.data || []);
+      } catch (err) {
+        console.error('Fetch complaints error:', err);
+      } finally {
+        setLoading(false);
+      }
+    }
+    if (user) {
+      fetchData();
+    }
+  }, [user]);
 
   const filteredComplaints = complaints.filter(c => 
     c.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
     c.category.toLowerCase().includes(searchTerm.toLowerCase())
   );
+
+  if (!hasHydrated || !user) {
+    return (
+      <div className="min-h-screen bg-[#f8f9fa] flex items-center justify-center">
+        <div className="w-12 h-12 border-4 border-[#000080]/20 border-t-[#000080] rounded-full animate-spin"></div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-[#f8f9fa] font-sans">

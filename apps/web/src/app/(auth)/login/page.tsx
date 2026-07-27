@@ -1,15 +1,34 @@
 'use client';
 
 import { useState } from 'react';
-import { supabase } from '@/lib/supabase';
 import { useRouter } from 'next/navigation';
 import { useAuthStore } from '@/lib/store';
+import { api } from '@/lib/api';
 import Link from 'next/link';
-import { Navigation, LogIn, Mail, Lock, AlertCircle } from 'lucide-react';
+import { Navigation, LogIn, Mail, Lock, AlertCircle, UserRound, ChevronDown } from 'lucide-react';
+
+type LoginRole = 'USER' | 'ADMIN';
+
+const ROLE_REDIRECTS: Record<LoginRole, string> = {
+  USER: '/',
+  ADMIN: '/admin/dashboard',
+};
+
+const getRoleGroup = (role?: string): LoginRole => {
+  const normalizedRole = role?.toUpperCase();
+  return normalizedRole === 'ADMIN' || normalizedRole === 'STAFF' || normalizedRole === 'OFFICER' ? 'ADMIN' : 'USER';
+};
+
+const getLoginErrorMessage = (err: unknown) => {
+  const responseMessage = (err as { response?: { data?: { message?: string } } }).response?.data?.message;
+  if (responseMessage) return responseMessage;
+  return err instanceof Error ? err.message : 'Login failed. Please check your credentials.';
+};
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [selectedRole, setSelectedRole] = useState<LoginRole>('USER');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
@@ -21,36 +40,31 @@ export default function LoginPage() {
     setError(null);
     
     try {
-      const { data, error } = await supabase.auth.signInWithPassword({
+      const response = await api.post('/auth/login', {
         email,
         password,
+        role: selectedRole,
       });
 
-      if (error) throw error;
+      const { access_token, user: apiUser } = response.data;
 
-      if (data.session && data.user) {
-        // Sync to public.User table
-        await supabase.from('User').upsert({
-          id: data.user.id,
-          email: data.user.email,
-          name: data.user.user_metadata?.name || data.user.email || 'Citizen',
-          password: 'supabase-auth',
-          role: data.user.user_metadata?.role || 'CITIZEN',
-          updatedAt: new Date().toISOString()
-        });
+      if (access_token && apiUser) {
+        const accountRole = getRoleGroup(apiUser.role);
 
-        setToken(data.session.access_token);
-        setUser({
-          id: data.user.id,
-          name: data.user.user_metadata?.name || data.user.email || 'Citizen',
-          email: data.user.email,
-          role: data.user.user_metadata?.role || 'CITIZEN'
-        });
-        router.push('/');
+        if (accountRole !== selectedRole) {
+          setToken(null);
+          setUser(null);
+          setError(`This account is registered as ${accountRole === 'ADMIN' ? 'Admin' : 'User'}. Please select the correct role.`);
+          return;
+        }
+
+        setToken(access_token);
+        setUser(apiUser);
+        router.push(ROLE_REDIRECTS[accountRole]);
       }
 
-    } catch (err: any) {
-      setError(err.message || 'Login failed. Please check your credentials.');
+    } catch (err: unknown) {
+      setError(getLoginErrorMessage(err));
     } finally {
       setLoading(false);
     }
@@ -77,7 +91,7 @@ export default function LoginPage() {
           </div>
 
           <div className="relative z-10 pt-12 border-t border-white/10">
-            <p className="text-sm font-medium text-white/50 italic">"Digital technology is a great leveller and a great catalyst."</p>
+            <p className="text-sm font-medium text-white/50 italic">&quot;Digital technology is a great leveller and a great catalyst.&quot;</p>
           </div>
 
           {/* Decorative Elements */}
@@ -101,6 +115,23 @@ export default function LoginPage() {
             )}
 
             <div className="space-y-2">
+              <label className="text-sm font-bold text-[#000080]/60 uppercase tracking-wider ml-1">Role</label>
+              <div className="relative group">
+                <UserRound className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400 group-focus-within:text-[#FF9933] transition-colors" size={20} />
+                <select
+                  required
+                  className="w-full appearance-none bg-zinc-50 border border-zinc-200 rounded-2xl py-4 pl-12 pr-12 text-[#000080] focus:bg-white focus:ring-4 focus:ring-[#FF9933]/10 focus:border-[#FF9933] outline-none transition-all font-medium"
+                  value={selectedRole}
+                  onChange={(e) => setSelectedRole(e.target.value as LoginRole)}
+                >
+                  <option value="USER">User</option>
+                  <option value="ADMIN">Admin</option>
+                </select>
+                <ChevronDown className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-zinc-400 group-focus-within:text-[#FF9933] transition-colors" size={20} />
+              </div>
+            </div>
+
+            <div className="space-y-2">
               <label className="text-sm font-bold text-[#000080]/60 uppercase tracking-wider ml-1">Email Address</label>
               <div className="relative group">
                 <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400 group-focus-within:text-[#FF9933] transition-colors" size={20} />
@@ -118,7 +149,7 @@ export default function LoginPage() {
             <div className="space-y-2">
               <div className="flex justify-between items-center ml-1">
                 <label className="text-sm font-bold text-[#000080]/60 uppercase tracking-wider">Password</label>
-                <Link href="/forgot-password" size={16} className="text-xs font-bold text-[#FF9933] hover:underline">Forgot Password?</Link>
+                <Link href="/forgot-password" className="text-xs font-bold text-[#FF9933] hover:underline">Forgot Password?</Link>
               </div>
               <div className="relative group">
                 <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400 group-focus-within:text-[#FF9933] transition-colors" size={20} />
@@ -150,7 +181,7 @@ export default function LoginPage() {
 
           <div className="mt-10 text-center">
             <p className="text-zinc-500 text-sm">
-              Don't have an account yet?{' '}
+              Don&apos;t have an account yet?{' '}
               <Link href="/register" className="text-[#FF9933] font-bold hover:underline">Create Account</Link>
             </p>
           </div>

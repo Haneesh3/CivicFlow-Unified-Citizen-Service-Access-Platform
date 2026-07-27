@@ -1,17 +1,51 @@
-import { Controller, Get, Param } from '@nestjs/common';
+import { Controller, Get, Post, Patch, Body, Param, UseGuards, Request } from '@nestjs/common';
 import { ServicesService } from './services.service';
+import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import { AuthService } from '../auth/auth.service';
 
 @Controller('services')
 export class ServicesController {
-  constructor(private readonly servicesService: ServicesService) {}
+  constructor(
+    private readonly servicesService: ServicesService,
+    private readonly authService: AuthService
+  ) {}
 
   @Get()
   findAll() {
     return this.servicesService.findAll();
   }
 
+  @UseGuards(JwtAuthGuard)
+  @Get('applications/me')
+  async findMyApplications(@Request() req: any) {
+    // Sync applications before returning
+    await this.authService.syncUserData(req.user.id);
+    return this.servicesService.findUserApplications(req.user.id);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Get('applications/all')
+  findAllApplications() {
+    return this.servicesService.findAllApplications();
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Patch('applications/:id')
+  updateApplication(
+    @Param('id') id: string,
+    @Body() body: { status: string; comment?: string }
+  ) {
+    return this.servicesService.updateApplicationStatus(id, body.status, body.comment);
+  }
+
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.servicesService.findOne(id);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Post('applications')
+  createApplication(@Request() req: any, @Body() data: any) {
+    return this.servicesService.createApplication(req.user.id, data);
   }
 }

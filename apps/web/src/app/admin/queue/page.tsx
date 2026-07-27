@@ -21,7 +21,7 @@ import {
 } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Search, Filter, Eye, ArrowUpDown } from 'lucide-react';
+import { Search, Filter, CheckCircle2, RotateCcw, MessageSquare, MapPin } from 'lucide-react';
 import { format } from 'date-fns';
 
 export default function ComplaintQueue() {
@@ -38,18 +38,26 @@ export default function ComplaintQueue() {
   });
 
   const filteredComplaints = complaints?.filter((c: any) => {
-    const matchesSearch = c.title.toLowerCase().includes(search.toLowerCase()) || 
-                         c.id.toLowerCase().includes(search.toLowerCase());
+    const matchesSearch = (c.title || '').toLowerCase().includes(search.toLowerCase()) || (c.id || '').toLowerCase().includes(search.toLowerCase());
     const matchesStatus = statusFilter === 'all' || c.status === statusFilter;
     return matchesSearch && matchesStatus;
+  });
+
+  const updateComplaintStatus = useMutation({
+    mutationFn: async ({ id, status, comment }: { id: string; status: string; comment?: string }) => {
+      const response = await api.patch(`/complaints/${id}`, { status, comment });
+      return response.data;
+    },
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['complaints'] }),
   });
 
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'SUBMITTED': return <Badge className="bg-blue-100 text-blue-700 hover:bg-blue-100 border-none">Submitted</Badge>;
       case 'ASSIGNED': return <Badge className="bg-orange-100 text-orange-700 hover:bg-orange-100 border-none">Assigned</Badge>;
+      case 'IN_PROGRESS': return <Badge className="bg-amber-100 text-amber-700 hover:bg-amber-100 border-none">In Progress</Badge>;
       case 'RESOLVED': return <Badge className="bg-green-100 text-green-700 hover:bg-green-100 border-none">Resolved</Badge>;
-      case 'CLOSED': return <Badge className="bg-slate-100 text-slate-700 hover:bg-slate-100 border-none">Closed</Badge>;
+      case 'REOPENED': return <Badge className="bg-rose-100 text-rose-700 hover:bg-rose-100 border-none">Reopened</Badge>;
       default: return <Badge variant="outline">{status}</Badge>;
     }
   };
@@ -124,6 +132,15 @@ export default function ComplaintQueue() {
                     <div className="flex flex-col">
                       <span className="font-medium text-slate-900">{c.title}</span>
                       <span className="text-xs text-slate-500">{c.category}</span>
+                      {c.status === 'REOPENED' && (() => {
+                        const reopenUpdate = c.updates?.find((u: any) => u.status === 'REOPENED');
+                        const reopenComment = reopenUpdate?.comment || 'Citizen reopened the ticket.';
+                        return (
+                          <div className="mt-1.5 text-xs text-rose-700 bg-rose-50 border border-rose-100 rounded-lg p-2 font-medium max-w-[320px]">
+                            <strong>Reopen Reason:</strong> &quot;{reopenComment}&quot;
+                          </div>
+                        );
+                      })()}
                     </div>
                   </TableCell>
                   <TableCell>
@@ -137,9 +154,19 @@ export default function ComplaintQueue() {
                   </TableCell>
                   <TableCell>{getStatusBadge(c.status)}</TableCell>
                   <TableCell className="text-right">
-                    <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                      <Eye className="h-4 w-4 text-slate-600" />
-                    </Button>
+                    <div className="flex justify-end gap-2">
+                      <Button variant="ghost" size="sm" className="h-8 px-3" onClick={() => updateComplaintStatus.mutate({ id: c.id, status: 'IN_PROGRESS', comment: 'Assigned to government team' })}>
+                        <MessageSquare className="mr-2 h-4 w-4" /> Work
+                      </Button>
+                      <Button variant="ghost" size="sm" className="h-8 px-3" onClick={() => updateComplaintStatus.mutate({ id: c.id, status: 'RESOLVED', comment: 'Issue cleared by government team' })}>
+                        <CheckCircle2 className="mr-2 h-4 w-4" /> Close
+                      </Button>
+                      {c.status === 'RESOLVED' && (
+                        <Button variant="ghost" size="sm" className="h-8 px-3" onClick={() => updateComplaintStatus.mutate({ id: c.id, status: 'REOPENED', comment: 'Reopened by government review' })}>
+                          <RotateCcw className="mr-2 h-4 w-4" /> Reopen
+                        </Button>
+                      )}
+                    </div>
                   </TableCell>
                 </TableRow>
               ))

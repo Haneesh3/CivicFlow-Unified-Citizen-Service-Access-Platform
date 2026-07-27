@@ -3,14 +3,15 @@
 import React, { useState, useEffect, Suspense } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
-import { supabase } from '@/lib/supabase';
+import { api } from '@/lib/api';
 import { 
   ChevronLeft, 
-  Search,
   Navigation,
   Clock,
   CheckCircle2,
-  AlertCircle
+  AlertCircle,
+  RotateCcw,
+  Star
 } from 'lucide-react';
 
 function TrackingContent() {
@@ -19,6 +20,11 @@ function TrackingContent() {
   const [complaint, setComplaint] = useState<any>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [rating, setRating] = useState(5);
+  const [ratingComment, setRatingComment] = useState('');
+  const [actionLoading, setActionLoading] = useState(false);
+  const [showReopenForm, setShowReopenForm] = useState(false);
+  const [reopenComment, setReopenComment] = useState('');
 
   const handleTrack = async (idToTrack?: string) => {
     const id = idToTrack || ticketId;
@@ -28,18 +34,54 @@ function TrackingContent() {
     setComplaint(null);
 
     try {
-      const { data, error } = await supabase
-        .from('Complaint')
-        .select('*')
-        .eq('id', id)
-        .single();
+      const response = await api.get(`/complaints/${id}`);
+      const data = response.data;
 
-      if (error || !data) throw new Error('Ticket ID not found. Please check and try again.');
+      if (!data) throw new Error('Ticket ID not found. Please check and try again.');
       setComplaint(data);
+      setRating(data.rating || 5);
+      setRatingComment(data.ratingComment || '');
     } catch (err: any) {
       setError(err.message);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleRating = async () => {
+    if (!complaint) return;
+    setActionLoading(true);
+    setError('');
+    try {
+      const response = await api.patch(`/complaints/${complaint.id}`, {
+        status: complaint.status,
+        rating,
+        ratingComment,
+        comment: 'Citizen submitted feedback for completed work.',
+      });
+      setComplaint(response.data);
+    } catch (err: any) {
+      setError(err.response?.data?.message || err.message || 'Unable to submit feedback right now.');
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const handleReopen = async () => {
+    if (!complaint) return;
+    setActionLoading(true);
+    setError('');
+    try {
+      const response = await api.patch(`/complaints/${complaint.id}/reopen`, {
+        comment: reopenComment
+      });
+      setComplaint(response.data);
+      setShowReopenForm(false);
+      setReopenComment('');
+    } catch (err: any) {
+      setError(err.response?.data?.message || err.message || 'Unable to reopen this ticket right now.');
+    } finally {
+      setActionLoading(false);
     }
   };
 
@@ -140,6 +182,87 @@ function TrackingContent() {
               </div>
             </div>
           </div>
+
+          {complaint.status === 'RESOLVED' && (
+            <div className="rounded-2xl border border-zinc-200 bg-zinc-50 p-6 space-y-4">
+              {showReopenForm ? (
+                <div className="space-y-4">
+                  <div className="flex justify-between items-center">
+                    <div>
+                      <h4 className="text-sm font-black uppercase tracking-[0.2em] text-[#000080]">Reopen Ticket</h4>
+                      <p className="text-xs text-zinc-500">Explain why the issue remains unresolved.</p>
+                    </div>
+                  </div>
+                  <textarea 
+                    value={reopenComment} 
+                    onChange={(e) => setReopenComment(e.target.value)} 
+                    className="min-h-24 w-full rounded-2xl border border-zinc-200 bg-white px-4 py-3 text-sm outline-none focus:border-rose-500" 
+                    placeholder="Provide details about what remains unresolved (e.g., pothole only partially filled)..." 
+                  />
+                  <div className="flex gap-2">
+                    <button 
+                      onClick={handleReopen} 
+                      disabled={actionLoading} 
+                      className="rounded-2xl bg-rose-600 px-5 py-3 text-sm font-bold text-white hover:bg-rose-700 disabled:opacity-50 transition-colors"
+                    >
+                      {actionLoading ? 'Reopening...' : 'Confirm Reopen'}
+                    </button>
+                    <button 
+                      onClick={() => { setShowReopenForm(false); setReopenComment(''); }} 
+                      className="rounded-2xl border border-zinc-200 bg-white px-5 py-3 text-sm font-bold text-zinc-600 hover:bg-zinc-50 transition-colors"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </div>
+              ) : complaint.rating ? (
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h4 className="text-sm font-black uppercase tracking-[0.2em] text-[#000080]">Citizen Feedback Submitted</h4>
+                      <p className="text-xs text-zinc-500">Thank you for sharing your experience.</p>
+                    </div>
+                    <button onClick={() => setShowReopenForm(true)} className="flex items-center gap-2 rounded-full border border-rose-200 bg-white px-4 py-2 text-sm font-semibold text-rose-600 hover:bg-rose-50 transition-colors">
+                      <RotateCcw size={16} /> Reopen
+                    </button>
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    {[1, 2, 3, 4, 5].map((star) => (
+                      <Star key={star} size={20} className={star <= complaint.rating ? 'text-[#FF9933]' : 'text-zinc-300'} fill="currentColor" />
+                    ))}
+                  </div>
+                  {complaint.ratingComment && (
+                    <div className="bg-white border border-zinc-150 p-4 rounded-xl text-sm text-slate-700 italic">
+                      &quot;{complaint.ratingComment}&quot;
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h4 className="text-sm font-black uppercase tracking-[0.2em] text-[#000080]">Citizen feedback</h4>
+                      <p className="text-xs text-zinc-500">Rate the resolution and share a short note.</p>
+                    </div>
+                    <button onClick={() => setShowReopenForm(true)} className="flex items-center gap-2 rounded-full border border-rose-200 bg-white px-4 py-2 text-sm font-semibold text-rose-600 hover:bg-rose-50 transition-colors">
+                      <RotateCcw size={16} /> Reopen
+                    </button>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    {[1, 2, 3, 4, 5].map((star) => (
+                      <button key={star} type="button" onClick={() => setRating(star)} className={star <= rating ? 'text-[#FF9933]' : 'text-zinc-300'}>
+                        <Star size={20} fill="currentColor" />
+                      </button>
+                    ))}
+                  </div>
+                  <textarea value={ratingComment} onChange={(e) => setRatingComment(e.target.value)} className="min-h-24 w-full rounded-2xl border border-zinc-200 bg-white px-4 py-3 text-sm outline-none focus:border-[#FF9933]" placeholder="Share your experience with the completed work..." />
+                  <button onClick={handleRating} disabled={actionLoading} className="rounded-2xl bg-[#000080] px-5 py-3 text-sm font-bold text-white disabled:opacity-50">
+                    {actionLoading ? 'Saving...' : 'Submit feedback'}
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
         </div>
       )}
     </>

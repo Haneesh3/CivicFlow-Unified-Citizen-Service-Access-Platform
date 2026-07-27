@@ -4,14 +4,16 @@ import { useState } from 'react';
 import { supabase } from '@/lib/supabase';
 import { useRouter } from 'next/navigation';
 import { useAuthStore } from '@/lib/store';
+import { api } from '@/lib/api';
 import Link from 'next/link';
-import { Navigation, UserPlus, Mail, Lock, User, AlertCircle, CheckCircle2 } from 'lucide-react';
+import { Navigation, UserPlus, Mail, Lock, User, AlertCircle, CheckCircle2, ShieldCheck } from 'lucide-react';
 
 export default function RegisterPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [name, setName] = useState('');
   const [loading, setLoading] = useState(false);
+  const [selectedRole, setSelectedRole] = useState<'CITIZEN' | 'ADMIN'>('CITIZEN');
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
   const router = useRouter();
@@ -23,49 +25,23 @@ export default function RegisterPage() {
     setError(null);
     
     try {
-      const { data, error } = await supabase.auth.signUp({
+      const response = await api.post('/auth/register', {
         email,
         password,
-        options: {
-          data: {
-            id: crypto.randomUUID(),
-            name: name,
-            role: 'CITIZEN'
-          }
-        }
+        name,
+        role: selectedRole
       });
 
+      const { access_token, user: apiUser } = response.data;
 
-      if (error) throw error;
-
-      if (data.user) {
-        // Sync to public.User table
-        await supabase.from('User').upsert({
-          id: data.user.id,
-          email: data.user.email,
-          name: name,
-          password: 'supabase-auth', // Placeholder for Prisma constraint
-          role: 'CITIZEN',
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString()
-        });
-
-        if (data.session) {
-          setToken(data.session.access_token);
-          setUser({
-            id: data.user.id,
-            name: name,
-            email: data.user.email,
-            role: 'CITIZEN'
-          });
-          router.push('/');
-        } else {
-          setSuccess(true);
-        }
+      if (access_token && apiUser) {
+        setToken(access_token);
+        setUser(apiUser);
+        router.push('/');
       }
 
     } catch (err: any) {
-      setError(err.message || 'Registration failed.');
+      setError(err.response?.data?.message || err.message || 'Registration failed.');
     } finally {
       setLoading(false);
     }
@@ -162,6 +138,26 @@ export default function RegisterPage() {
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                   />
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-sm font-bold text-[#000080]/60 uppercase tracking-wider ml-1">Account Type</label>
+                <div className="grid grid-cols-2 gap-3">
+                  <button
+                    type="button"
+                    onClick={() => setSelectedRole('CITIZEN')}
+                    className={`flex items-center justify-center gap-2 rounded-2xl border px-4 py-3 text-sm font-semibold transition-all ${selectedRole === 'CITIZEN' ? 'border-[#000080] bg-[#000080] text-white' : 'border-zinc-200 bg-zinc-50 text-[#000080]'}`}
+                  >
+                    <User size={18} /> Citizen
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setSelectedRole('ADMIN')}
+                    className={`flex items-center justify-center gap-2 rounded-2xl border px-4 py-3 text-sm font-semibold transition-all ${selectedRole === 'ADMIN' ? 'border-[#FF9933] bg-[#FF9933] text-white' : 'border-zinc-200 bg-zinc-50 text-[#000080]'}`}
+                  >
+                    <ShieldCheck size={18} /> Admin
+                  </button>
                 </div>
               </div>
 
