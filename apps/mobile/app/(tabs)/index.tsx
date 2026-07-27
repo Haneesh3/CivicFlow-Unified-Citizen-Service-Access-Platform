@@ -3,7 +3,7 @@ import { StyleSheet, View, Text, ScrollView, TouchableOpacity, ActivityIndicator
 import { useRouter, useFocusEffect } from 'expo-router';
 import { useAuthStore } from '../../lib/store';
 import { api } from '../../lib/api';
-import { AlertCircle, FileText, MapPin, User, Settings, Bell, ChevronRight, Info, CheckCircle2, Clock, Send, Phone } from 'lucide-react-native';
+import { AlertCircle, FileText, MapPin, User, Settings, Bell, ChevronRight, Info, CheckCircle2, Clock, Send, Phone, Briefcase } from 'lucide-react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import * as SecureStore from 'expo-secure-store';
 
@@ -102,6 +102,7 @@ export default function DashboardScreen() {
 
   const [stats, setStats] = useState({ reports: 0, applications: 0, resolved: 0 });
   const [drafts, setDrafts] = useState<any[]>([]);
+  const [applications, setApplications] = useState<any[]>([]);
   const [syncing, setSyncing] = useState(false);
 
   const loadDrafts = async () => {
@@ -182,6 +183,7 @@ export default function DashboardScreen() {
 
       const complaintsData = reportsRes.data;
       setComplaints(complaintsData.slice(0, 3) || []);
+      setApplications(appsRes.data.slice(0, 3) || []);
 
       setStats({
         reports: reportsRes.data.length,
@@ -401,6 +403,53 @@ export default function DashboardScreen() {
               <Text style={styles.noticeBtnText}>{t.readCircular}</Text>
               <Send color="#050A44" size={14} style={{ transform: [{ rotate: '-45deg' }] }} />
             </TouchableOpacity>
+          </View>
+        </View>
+
+        {/* Service Tracker Section */}
+        <View style={[styles.sectionRow, { marginTop: 10 }]}>
+          <View style={styles.issuesSection}>
+            <View style={styles.sectionHeader}>
+              <View style={styles.sectionTitleRow}>
+                <View style={[styles.sectionIcon, { backgroundColor: '#10B981' }]}>
+                  <Briefcase color="#fff" size={14} />
+                </View>
+                <Text style={styles.sectionTitle}>Service Tracker</Text>
+              </View>
+              <TouchableOpacity onPress={() => router.push('/tracking')}>
+                <Text style={styles.viewAll}>{t.viewAll} <ChevronRight size={14} color="#F97316" /></Text>
+              </TouchableOpacity>
+            </View>
+
+            {loading && applications.length === 0 ? (
+              <ActivityIndicator color="#10B981" style={{ marginVertical: 20 }} />
+            ) : applications.length > 0 ? (
+              applications.map((app) => (
+                <TouchableOpacity 
+                  key={app.id} 
+                  style={styles.issueCard}
+                  onPress={() => router.push(`/tracking/${app.id}` as any)}
+                >
+                  <View style={[styles.issueIconBox, { backgroundColor: '#F0FDF4' }]}>
+                    <FileText color="#10B981" size={20} />
+                  </View>
+                  <View style={styles.issueContent}>
+                    <Text style={styles.issueTitleText}>{app.data?.serviceTitle || 'Service'}</Text>
+                    <Text style={styles.issueSubText}>{app.data?.subService || 'General'} • Ref: {app.referenceId}</Text>
+                  </View>
+                  <View style={styles.statusWrap}>
+                    <View style={[styles.statusBadge, { backgroundColor: '#E0F2FE' }]}>
+                      <Text style={[styles.statusText, { color: '#0369A1', fontSize: 10 }]}>{app.status}</Text>
+                    </View>
+                    <Text style={styles.dateText}>{app.appointmentDate ? new Date(app.appointmentDate).toLocaleDateString() : 'Online'}</Text>
+                  </View>
+                </TouchableOpacity>
+              ))
+            ) : (
+              <View style={styles.emptyBox}>
+                <Text style={styles.emptyText}>No active service applications.</Text>
+              </View>
+            )}
           </View>
         </View>
 
