@@ -112,4 +112,22 @@ export class ServicesService {
 
     return updated;
   }
+
+  async findByReferenceId(referenceId: string) {
+    return this.prisma.serviceApplication.findUnique({
+      where: { referenceId },
+      include: {
+        updates: {
+          orderBy: { createdAt: 'desc' }
+        },
+        user: {
+          select: {
+            name: true,
+            email: true,
+            phone: true
+          }
+        }
+      }
+    });
+  }
 }

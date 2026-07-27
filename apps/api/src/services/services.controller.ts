@@ -38,6 +38,11 @@ export class ServicesController {
     return this.servicesService.updateApplicationStatus(id, body.status, body.comment);
   }
 
+  @Get('applications/reference/:referenceId')
+  findByReference(@Param('referenceId') referenceId: string) {
+    return this.servicesService.findByReferenceId(referenceId);
+  }
+
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.servicesService.findOne(id);
