@@ -678,6 +678,7 @@ export default function ServicesPage() {
       setCenters(calculated);
       if (calculated.length > 0) {
         setActiveMapCenter(calculated[0]);
+        setSelectedCenter(calculated[0]);
       }
       const formattedCity = detectedCity.charAt(0).toUpperCase() + detectedCity.slice(1).toLowerCase();
       setActiveCity(formattedCity);
@@ -746,6 +747,7 @@ export default function ServicesPage() {
     setCenters(calculated);
     if (calculated.length > 0) {
       setActiveMapCenter(calculated[0]);
+      setSelectedCenter(calculated[0]);
     }
   };
 
@@ -803,7 +805,7 @@ export default function ServicesPage() {
       });
 
       setRefId(response.data.referenceId);
-      setStep(5);
+      setStep(2);
     } catch (err) {
       console.error('Submission failed:', err);
       alert('Application failed. Please try again.');
@@ -924,234 +926,231 @@ export default function ServicesPage() {
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-12">
           <div className="absolute inset-0 bg-[#000080]/90 backdrop-blur-3xl animate-fade-in" onClick={closeModal}></div>
           
-          <div className="bg-white w-full max-w-2xl rounded-[4rem] overflow-hidden shadow-2xl relative z-10 animate-scale-up border border-white/20">
+          <div className="bg-white w-full max-w-5xl rounded-[4rem] overflow-hidden shadow-2xl relative z-10 animate-scale-up border border-white/20">
             {/* Modal Header */}
-            <div className="bg-[#000080] p-12 text-white relative overflow-hidden">
-               <button onClick={closeModal} className="absolute top-10 right-10 p-4 bg-white/10 hover:bg-white/20 rounded-full transition-colors z-20">
-                <RenderIcon name="x" size={28} />
+            <div className="bg-[#000080] p-10 text-white relative overflow-hidden">
+               <button onClick={closeModal} className="absolute top-8 right-8 p-3 bg-white/10 hover:bg-white/20 rounded-full transition-colors z-20">
+                <RenderIcon name="x" size={24} />
               </button>
               
-              <div className="relative z-10 flex items-center gap-10">
-                <div className={`w-28 h-28 bg-white rounded-[2.5rem] flex items-center justify-center ${selectedService.color} shadow-2xl ring-12 ring-white/5`}>
-                  <RenderIcon name={selectedService.iconKey} size={56} />
+              <div className="relative z-10 flex items-center gap-8">
+                <div className={`w-20 h-20 bg-white rounded-[2rem] flex items-center justify-center ${selectedService.color} shadow-2xl shrink-0`}>
+                  <RenderIcon name={selectedService.iconKey} size={40} />
                 </div>
                 <div>
-                   <div className="flex items-center gap-3 mb-2">
+                   <div className="flex items-center gap-3 mb-1">
                       <span className="text-[10px] font-black uppercase tracking-[0.2em] text-[#FF9933]">{selectedService.category} Gateway</span>
                       <span className="text-white/20">•</span>
-                      <span className="text-[10px] font-black uppercase tracking-[0.2em] text-white/50">Step {step} of 5</span>
+                      <span className="text-[10px] font-black uppercase tracking-[0.2em] text-white/50">{step === 1 ? 'Booking Form' : 'Success'}</span>
                    </div>
-                   <h3 className="text-4xl font-black">{selectedService.title}</h3>
+                   <h3 className="text-3xl font-black">{selectedService.title}</h3>
                 </div>
               </div>
               <div className="absolute -right-20 -top-20 w-96 h-96 bg-white/5 rounded-full blur-[100px]"></div>
             </div>
 
-            <div className="p-12 max-h-[65vh] overflow-y-auto custom-scrollbar">
+            <div className="p-10 max-h-[75vh] overflow-y-auto custom-scrollbar">
               
-              {/* Step 1: Details */}
+              {/* Step 1: Unified Booking Form */}
               {step === 1 && (
-                <div className="space-y-10 animate-fade-in">
-                  <div className="space-y-6">
-                    <h4 className="text-[10px] font-black uppercase tracking-widest text-zinc-300">Briefing</h4>
-                    <p className="text-zinc-600 text-2xl leading-relaxed font-bold">{selectedService.details}</p>
-                  </div>
-                  <div className="bg-zinc-50 p-10 rounded-[3rem] border border-zinc-100 flex items-start gap-6">
-                    <div className="w-14 h-14 bg-blue-600/10 text-blue-600 rounded-2xl flex items-center justify-center shrink-0">
-                       <RenderIcon name="info" size={32} />
-                    </div>
-                    <div className="space-y-2">
-                      <p className="text-base font-black text-[#000080]">National Service Standards</p>
-                      <p className="text-sm text-zinc-500 leading-relaxed font-medium">This service includes a physical verification phase. Your biometric or original documents will be checked at the Zonal office.</p>
-                    </div>
-                  </div>
-                  <button onClick={() => setStep(2)} className="w-full bg-[#FF9933] text-white py-8 rounded-[2.5rem] font-black text-2xl flex items-center justify-center gap-4 hover:scale-[1.02] transition-all shadow-2xl shadow-orange-100">
-                    Choose Service Type <RenderIcon name="chevron-right" size={28} />
-                  </button>
-                </div>
-              )}
+                <div className="animate-fade-in space-y-6">
+                  <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+                    
+                    {/* Left Column: Details, Service Option, Date/Time, checklist */}
+                    <div className="lg:col-span-7 space-y-6">
+                      
+                      {/* Briefing */}
+                      <div className="bg-zinc-50/50 p-6 rounded-3xl border border-zinc-100/50 text-left">
+                        <p className="text-zinc-600 text-sm leading-relaxed font-bold">{selectedService.details}</p>
+                      </div>
 
-              {/* Step 2: Options */}
-              {step === 2 && (
-                <div className="space-y-8 animate-fade-in">
-                  <h4 className="text-[10px] font-black uppercase tracking-widest text-zinc-400">What do you want to update?</h4>
-                  <div className="grid grid-cols-1 gap-4">
-                    {selectedService.options.map((opt) => (
-                      <button 
-                        key={opt.id}
-                        onClick={() => {
-                          setSelectedOption(opt);
-                          setStep(3);
-                        }}
-                        className="w-full bg-white border-4 border-zinc-50 hover:border-[#FF9933]/50 p-10 rounded-[2.5rem] flex items-center justify-between group transition-all shadow-sm hover:shadow-xl"
-                      >
-                        <div className="text-left flex items-center gap-8">
-                           <div className="w-14 h-14 bg-zinc-50 rounded-2xl flex items-center justify-center text-zinc-200 group-hover:bg-[#FF9933]/10 group-hover:text-[#FF9933] transition-all">
-                              <RenderIcon name="check" size={32} />
-                           </div>
-                           <div>
-                            <p className="font-black text-2xl text-[#000080] mb-1">{opt.label}</p>
-                            <p className="text-[10px] text-zinc-400 font-black uppercase tracking-widest">Total Processing: {opt.totalTime}</p>
-                           </div>
+                      {/* Select Option */}
+                      <div className="space-y-3">
+                        <label className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-400 ml-2 block text-left">Select Service Type *</label>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                          {selectedService.options.map((opt) => (
+                            <button
+                              key={opt.id}
+                              type="button"
+                              onClick={() => setSelectedOption(opt)}
+                              className={`p-5 rounded-[2rem] border-2 transition-all text-left flex items-start gap-4 ${
+                                selectedOption?.id === opt.id
+                                  ? 'border-[#FF9933] bg-orange-50/10 shadow-sm'
+                                  : 'border-zinc-100 bg-white hover:border-zinc-300'
+                              }`}
+                            >
+                              <div className={`w-6 h-6 rounded-full flex items-center justify-center shrink-0 border mt-0.5 text-xs ${
+                                selectedOption?.id === opt.id
+                                  ? 'border-[#FF9933] bg-[#FF9933] text-white font-bold'
+                                  : 'border-zinc-200 bg-white text-transparent'
+                              }`}>
+                                ✓
+                              </div>
+                              <div>
+                                <p className="font-black text-base text-[#000080]">{opt.label}</p>
+                                <p className="text-[10px] text-zinc-400 font-bold uppercase tracking-wider mt-1">Time: {opt.totalTime}</p>
+                              </div>
+                            </button>
+                          ))}
                         </div>
-                        <RenderIcon name="chevron-right" size={32} className="text-zinc-100 group-hover:text-[#FF9933] transition-all" />
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              )}
+                      </div>
 
-              {/* Step 3: Center */}
-              {step === 3 && (
-                <div className="space-y-8 animate-fade-in">
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-zinc-50 p-8 rounded-[2rem] border border-zinc-100">
-                     <div className="flex flex-col text-left">
-                        <h4 className="text-[10px] font-black uppercase tracking-widest text-zinc-400">Nearest Service Centers</h4>
-                        <span className="text-xs text-zinc-500 font-bold mt-1">Current City: {activeCity}</span>
-                     </div>
-                     <div className="flex items-center gap-3">
+                      {/* Select Date and Slot */}
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                        <div className="space-y-3 text-left">
+                          <label className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-400 ml-2 block">Select Date *</label>
+                          <div className="relative">
+                            <div className="absolute left-5 top-1/2 -translate-y-1/2 text-zinc-300 pointer-events-none">
+                              <RenderIcon name="calendar" size={18} />
+                            </div>
+                            <input 
+                              type="date" 
+                              required
+                              min={new Date(Date.now() + 86400000).toISOString().split('T')[0]} // Min 24h advance
+                              className={`w-full bg-zinc-50 border border-zinc-200 rounded-[1.5rem] py-4 pl-12 pr-4 focus:ring-4 focus:ring-[#FF9933]/5 focus:border-[#FF9933] outline-none font-bold text-sm text-[#000080] transition-all`}
+                              value={appointment.date}
+                              onChange={(e) => {
+                                setAppointment({...appointment, date: e.target.value});
+                                checkHoliday(e.target.value);
+                              }}
+                            />
+                          </div>
+                          {holidayError && <p className="text-[10px] text-red-500 font-black mt-1 ml-2">{holidayError}</p>}
+                        </div>
+
+                        <div className="space-y-3 text-left">
+                          <label className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-400 ml-2 block">Select Time Slot *</label>
+                          <select
+                            required
+                            disabled={!appointment.date || !!holidayError}
+                            value={appointment.slot}
+                            onChange={(e) => setAppointment({...appointment, slot: e.target.value})}
+                            className="w-full bg-zinc-50 border border-zinc-200 rounded-[1.5rem] py-4 px-4 text-[#000080] font-bold text-sm outline-none shadow-sm focus:ring-4 focus:ring-[#FF9933]/5 focus:border-[#FF9933] disabled:opacity-40"
+                          >
+                            <option value="">-- Choose Slot --</option>
+                            {TIME_SLOTS.map(slot => (
+                              <option key={slot} value={slot}>{slot}</option>
+                            ))}
+                          </select>
+                        </div>
+                      </div>
+
+                      {/* Checklist */}
+                      {selectedOption && (
+                        <div className="bg-orange-50/50 p-6 rounded-[2rem] border border-orange-100/50 space-y-4 text-left">
+                          <div className="flex items-center gap-3">
+                            <RenderIcon name="alert" size={20} className="text-[#FF9933]" />
+                            <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-[#FF9933]">Required Checklist</h4>
+                          </div>
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            {selectedOption.docs.map((doc) => (
+                              <div key={doc} className="flex items-center gap-3 text-[#000080] font-bold text-xs bg-white p-4 rounded-xl shadow-xs border border-orange-100/10">
+                                <RenderIcon name="check" size={14} className="text-[#138808]" />
+                                {doc}
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Right Column: Center, City Selector, Map */}
+                    <div className="lg:col-span-5 space-y-6">
+                      
+                      {/* City Selector Header */}
+                      <div className="flex items-center justify-between bg-zinc-50 p-5 rounded-2xl border border-zinc-100 text-left">
+                        <div>
+                          <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-400">Nearest Service Center *</h4>
+                          <span className="text-[10px] text-zinc-500 font-bold mt-1 block">City: {activeCity}</span>
+                        </div>
                         <select 
                           value={activeCity}
                           onChange={(e) => handleCityChange(e.target.value)}
-                          className="appearance-none bg-white border border-zinc-200 rounded-xl px-4 py-2 text-xs font-bold text-[#000080] outline-none shadow-sm focus:ring-2 focus:ring-[#FF9933]/10"
+                          className="appearance-none bg-white border border-zinc-200 rounded-lg px-3 py-1.5 text-[10px] font-bold text-[#000080] outline-none shadow-sm"
                         >
                           <option value="Delhi">Delhi</option>
                           <option value="Chennai">Chennai</option>
                           <option value="Mumbai">Mumbai</option>
                           <option value="Bengaluru">Bengaluru</option>
                         </select>
-                        <span className="text-[10px] font-black text-blue-600 bg-white px-4 py-2 rounded-full uppercase tracking-widest shadow-sm shrink-0">Location Active</span>
-                     </div>
-                  </div>
-                  <div className="grid grid-cols-1 gap-4">
-                    {centers.map(center => (
-                      <button 
-                        key={center.id}
-                        onClick={() => {
-                          setSelectedCenter(center);
-                          setStep(4);
-                        }}
-                        onMouseEnter={() => setActiveMapCenter(center)}
-                        className="w-full bg-white border-2 border-zinc-50 hover:border-[#138808]/50 p-8 rounded-[3rem] flex items-center justify-between group transition-all shadow-sm hover:shadow-xl text-left"
-                      >
-                        <div className="flex items-center gap-8">
-                           <div className="w-16 h-16 bg-zinc-50 rounded-2xl flex items-center justify-center text-zinc-300 group-hover:bg-[#138808]/10 group-hover:text-[#138808] transition-all shrink-0">
-                              <RenderIcon name="building" size={32} />
-                           </div>
-                           <div className="space-y-1">
-                            <p className="font-black text-2xl text-[#000080]">{center.name}</p>
-                            <div className="flex items-center gap-6">
-                               <span className="text-[10px] font-black text-zinc-400 flex items-center gap-1"><RenderIcon name="map-pin" size={14} /> {center.location}</span>
-                               <span className="text-[10px] font-black text-[#138808] flex items-center gap-1 uppercase tracking-widest"><RenderIcon name="arrow-right" size={14} className="-rotate-45" /> {center.distance} Away</span>
-                            </div>
-                           </div>
-                        </div>
-                        <RenderIcon name="chevron-right" size={32} className="text-zinc-100 group-hover:text-[#138808] transition-all" />
-                      </button>
-                    ))}
-                  </div>
+                      </div>
 
-                  {activeMapCenter && (
-                    <div className="space-y-4 mt-6">
-                      <div className="flex items-center gap-2 text-xs font-bold text-zinc-500 justify-center">
-                        <RenderIcon name="map-pin" size={16} className="text-[#FF9933]" />
-                        <span>Office Map Locator ({activeMapCenter.name} - {activeMapCenter.location})</span>
-                      </div>
-                      <div className="w-full h-64 rounded-[2rem] overflow-hidden border border-zinc-200 shadow-inner relative">
-                        <iframe
-                          width="100%"
-                          height="100%"
-                          style={{ border: 0 }}
-                          loading="lazy"
-                          allowFullScreen
-                          referrerPolicy="no-referrer-when-downgrade"
-                          src={`https://maps.google.com/maps?q=${activeMapCenter.lat},${activeMapCenter.lng}&t=&z=14&ie=UTF8&iwloc=&output=embed`}
-                          className="w-full h-full object-cover animate-fade-in"
-                        />
-                      </div>
-                    </div>
-                  )}
-                </div>
-              )}
-
-              {/* Step 4: Appointment */}
-              {step === 4 && (
-                <div className="space-y-12 animate-fade-in">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
-                    <div className="space-y-4">
-                      <label className="text-[10px] font-black uppercase tracking-widest text-zinc-400 ml-2">Select Date</label>
-                      <div className="relative">
-                        <div className="absolute left-6 top-1/2 -translate-y-1/2 text-zinc-300">
-                          <RenderIcon name="calendar" size={24} />
-                        </div>
-                        <input 
-                          type="date" 
-                          min={new Date().toISOString().split('T')[0]}
-                          className={`w-full bg-zinc-50 border-2 ${holidayError ? 'border-red-400 ring-4 ring-red-50' : 'border-zinc-100'} rounded-[2rem] py-6 px-10 pl-16 focus:ring-12 focus:ring-[#FF9933]/5 focus:border-[#FF9933] outline-none font-black text-2xl text-[#000080] transition-all`} 
-                          onChange={(e) => {
-                            setAppointment({...appointment, date: e.target.value});
-                            checkHoliday(e.target.value);
-                          }}
-                        />
-                      </div>
-                      {holidayError && (
-                        <div className="bg-red-50 text-red-600 p-4 rounded-2xl flex items-center gap-3 animate-shake">
-                           <RenderIcon name="alert" size={20} />
-                           <p className="text-[10px] font-black uppercase tracking-widest">{holidayError}</p>
-                        </div>
-                      )}
-                    </div>
-                    <div className="space-y-4">
-                      <label className="text-[10px] font-black uppercase tracking-widest text-zinc-400 ml-2">Select Time Slot</label>
-                      <div className="grid grid-cols-1 gap-3 max-h-48 overflow-y-auto pr-2 custom-scrollbar">
-                        {TIME_SLOTS.map(slot => (
+                      {/* Centers selector cards list */}
+                      <div className="space-y-3 max-h-56 overflow-y-auto custom-scrollbar p-1">
+                        {centers.map(center => (
                           <button 
-                            key={slot}
-                            disabled={!!holidayError}
-                            onClick={() => setAppointment({...appointment, slot: slot})}
-                            className={`p-5 rounded-2xl border-2 text-sm font-black transition-all ${
-                              appointment.slot === slot 
-                              ? 'bg-[#000080] text-white border-[#000080] shadow-xl' 
-                              : 'bg-zinc-50 border-zinc-100 text-zinc-500 disabled:opacity-20'
+                            key={center.id}
+                            type="button"
+                            onClick={() => {
+                              setSelectedCenter(center);
+                              setActiveMapCenter(center);
+                            }}
+                            onMouseEnter={() => setActiveMapCenter(center)}
+                            className={`w-full p-4 rounded-[2rem] border-2 transition-all flex items-center justify-between text-left ${
+                              selectedCenter?.id === center.id
+                                ? 'border-[#138808] bg-[#138808]/5 shadow-sm'
+                                : 'border-zinc-50 bg-white hover:border-zinc-200'
                             }`}
                           >
-                            {slot}
+                            <div className="space-y-1">
+                              <p className="font-bold text-sm text-[#000080]">{center.name}</p>
+                              <div className="flex items-center gap-3">
+                                <span className="text-[9px] text-zinc-400 font-semibold flex items-center gap-1"><RenderIcon name="map-pin" size={10} /> {center.location}</span>
+                                <span className="text-[9px] text-[#138808] font-bold uppercase tracking-wider flex items-center gap-1"><RenderIcon name="arrow-right" size={10} className="-rotate-45" /> {center.distance}</span>
+                              </div>
+                            </div>
+                            <div className={`w-6 h-6 rounded-full flex items-center justify-center shrink-0 border text-xs ${
+                              selectedCenter?.id === center.id
+                                ? 'border-[#138808] bg-[#138808] text-white font-bold'
+                                : 'border-zinc-200 bg-white text-transparent'
+                            }`}>
+                              ✓
+                            </div>
                           </button>
                         ))}
                       </div>
-                    </div>
-                  </div>
 
-                  <div className="bg-orange-50/50 p-10 rounded-[3rem] border border-orange-100/50 space-y-8">
-                    <div className="flex items-center gap-3">
-                       <RenderIcon name="alert" size={28} className="text-[#FF9933]" />
-                       <h4 className="text-[10px] font-black uppercase tracking-widest text-[#FF9933]">Pre-Visit Checklist</h4>
-                    </div>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                      {(selectedOption?.docs ?? []).map((doc) => (
-                        <div key={doc} className="flex items-center gap-4 text-[#000080] font-black text-sm bg-white p-5 rounded-2xl shadow-sm border border-orange-100/10">
-                          <RenderIcon name="check" size={18} className="text-[#138808]" />
-                          {doc}
+                      {/* Map Locator Preview */}
+                      {activeMapCenter && (
+                        <div className="space-y-3 text-left">
+                          <div className="flex items-center gap-2 text-[10px] font-bold text-zinc-400 justify-center">
+                            <RenderIcon name="map-pin" size={12} className="text-[#FF9933]" />
+                            <span>Locator: {activeMapCenter.name} ({activeMapCenter.location})</span>
+                          </div>
+                          <div className="w-full h-44 rounded-2xl overflow-hidden border border-zinc-200 shadow-inner relative">
+                            <iframe
+                              width="100%"
+                              height="100%"
+                              style={{ border: 0 }}
+                              loading="lazy"
+                              allowFullScreen
+                              referrerPolicy="no-referrer-when-downgrade"
+                              src={`https://maps.google.com/maps?q=${activeMapCenter.lat},${activeMapCenter.lng}&t=&z=14&ie=UTF8&iwloc=&output=embed`}
+                              className="w-full h-full object-cover animate-fade-in"
+                            />
+                          </div>
                         </div>
-                      ))}
+                      )}
                     </div>
                   </div>
 
-                  <div className="flex gap-6 pt-4">
-                    <button onClick={() => setStep(3)} className="flex-1 bg-zinc-50 text-zinc-400 py-6 rounded-[2rem] font-black text-lg">Back</button>
+                  {/* Form Footer Actions */}
+                  <div className="flex gap-4 pt-6 border-t border-zinc-100 mt-6">
+                    <button type="button" onClick={closeModal} className="px-8 py-4 bg-zinc-50 text-zinc-400 hover:bg-zinc-100 rounded-xl font-bold text-sm transition-colors">Cancel</button>
                     <button 
-                      disabled={!appointment.date || !appointment.slot || loading || !!holidayError}
+                      type="button"
+                      disabled={!selectedOption || !selectedCenter || !appointment.date || !appointment.slot || loading || !!holidayError}
                       onClick={handleApply} 
-                      className="flex-[2] bg-[#138808] text-white py-6 rounded-[2rem] font-black text-2xl hover:bg-[#0E6306] transition-all shadow-2xl shadow-green-100 disabled:opacity-20"
+                      className="flex-1 bg-[#138808] hover:bg-[#0E6306] text-white py-4 rounded-xl font-bold text-sm transition-all shadow-lg disabled:opacity-20 flex items-center justify-center"
                     >
-                      {loading ? <div className="w-10 h-10 border-4 border-white/20 border-t-white rounded-full animate-spin"></div> : 'Confirm Booking'}
+                      {loading ? <div className="w-5 h-5 border-2 border-white/20 border-t-white rounded-full animate-spin"></div> : 'Submit Booking Request'}
                     </button>
                   </div>
                 </div>
               )}
 
-              {/* Step 5: Final Slip */}
-              {step === 5 && (
+              {/* Step 2: Final Success Slip */}
+              {step === 2 && (
                 <div className="text-center py-10 space-y-12 animate-fade-in">
                    <div className="w-40 h-40 bg-[#138808]/10 text-[#138808] rounded-full flex items-center justify-center mx-auto shadow-inner relative">
                     <RenderIcon name="check" size={80} />
@@ -1179,7 +1178,7 @@ export default function ServicesPage() {
                            </div>
                            <ul className="space-y-4 text-sm text-[#000080]/70 font-bold leading-relaxed">
                               <li className="flex items-start gap-3"><span className="text-[#138808]">✓</span> Carry all {selectedOption?.docs.length ?? 0} original documents.</li>
-                              <li className="flex items-start gap-3"><span className="text-[#138808]">✓</span> Reach by {appointment.slot.split(' - ')[0]}.</li>
+                              <li className="flex items-start gap-3"><span className="text-[#138808]">✓</span> Reach by {appointment.slot?.split(' - ')[0] || 'N/A'}.</li>
                               <li className="flex items-start gap-3"><span className="text-[#138808]">✓</span> Office Processing: <span className="text-[#FF9933]">{selectedService.officeTime}</span>.</li>
                               <li className="flex items-start gap-3"><span className="text-[#138808]">✓</span> Update Delivery: <span className="text-[#FF9933]">{selectedOption?.totalTime}</span>.</li>
                            </ul>
@@ -1187,7 +1186,7 @@ export default function ServicesPage() {
                     </div>
                   </div>
                   
-                  <button onClick={() => router.push('/')} className="w-full bg-[#000080] text-white py-10 rounded-[3rem] font-black text-3xl hover:bg-[#000060] transition-all shadow-2xl shadow-navy/20">Return to Dashboard</button>
+                  <button onClick={closeModal} className="w-full bg-[#000080] text-white py-8 rounded-[3rem] font-black text-3xl hover:bg-[#000060] transition-all shadow-2xl shadow-navy/20">Return to Dashboard</button>
                 </div>
               )}
             </div>
