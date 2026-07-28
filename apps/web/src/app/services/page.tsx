@@ -1151,32 +1151,32 @@ export default function ServicesPage() {
 
               {/* Step 2: Final Success Slip */}
               {step === 2 && (
-                <div className="text-center py-10 space-y-12 animate-fade-in">
-                   <div className="w-40 h-40 bg-[#138808]/10 text-[#138808] rounded-full flex items-center justify-center mx-auto shadow-inner relative">
-                    <RenderIcon name="check" size={80} />
-                    <div className="absolute -inset-8 bg-[#138808]/5 rounded-full animate-pulse"></div>
+                <div className="text-center py-4 space-y-6 animate-fade-in">
+                   <div className="w-20 h-20 bg-[#138808]/10 text-[#138808] rounded-full flex items-center justify-center mx-auto shadow-inner relative">
+                    <RenderIcon name="check" size={40} />
+                    <div className="absolute -inset-4 bg-[#138808]/5 rounded-full animate-pulse"></div>
                   </div>
                   
-                  <div className="space-y-8">
-                    <h4 className="text-6xl font-black text-[#000080] tracking-tighter">Success!</h4>
+                  <div className="space-y-4">
+                    <h4 className="text-4xl font-black text-[#000080] tracking-tighter">Success!</h4>
                     
-                    <div className="bg-[#f8f9fa] rounded-[4rem] border-4 border-zinc-50 p-12 max-w-lg mx-auto shadow-inner relative overflow-hidden text-left space-y-8">
-                        <div className="grid grid-cols-[100px_1fr] items-baseline gap-y-4 gap-x-2">
+                    <div className="bg-[#f8f9fa] rounded-[2.5rem] border-2 border-zinc-50 p-6 max-w-md mx-auto shadow-inner relative overflow-hidden text-left space-y-4">
+                        <div className="grid grid-cols-[100px_1fr] items-baseline gap-y-3 gap-x-2">
                            <span className="text-[10px] font-black uppercase tracking-[0.3em] text-zinc-300">Reference ID</span>
-                           <span className="text-[#FF9933] font-black text-3xl font-mono text-right">{refId}</span>
+                           <span className="text-[#FF9933] font-black text-2xl font-mono text-right">{refId}</span>
 
                            <span className="text-[10px] font-black uppercase tracking-[0.3em] text-zinc-300">Center</span>
-                           <span className="text-[#000080] font-black text-2xl text-right">{selectedCenter?.name}</span>
+                           <span className="text-[#000080] font-black text-lg text-right">{selectedCenter?.name}</span>
 
                            <span className="text-[10px] font-black uppercase tracking-[0.3em] text-zinc-300">Slot</span>
-                           <span className="text-[#000080] font-black text-lg sm:text-xl text-right leading-tight break-words">{new Date(appointment.date).toDateString()} @ {appointment.slot}</span>
+                           <span className="text-[#000080] font-black text-sm text-right leading-tight break-words">{new Date(appointment.date).toDateString()} @ {appointment.slot}</span>
                         </div>
 
-                        <div className="bg-white border-2 border-orange-100 rounded-[2.5rem] p-10 space-y-6 relative z-10">
-                           <div className="flex items-center gap-4 text-[#FF9933] font-black text-xs uppercase tracking-widest">
-                              <RenderIcon name="alert" size={24} /> Critical Instructions
+                        <div className="bg-white border border-orange-100 rounded-2xl p-5 space-y-3 relative z-10">
+                           <div className="flex items-center gap-3 text-[#FF9933] font-black text-[10px] uppercase tracking-widest">
+                              <RenderIcon name="alert" size={18} /> Critical Instructions
                            </div>
-                           <ul className="space-y-4 text-sm text-[#000080]/70 font-bold leading-relaxed">
+                           <ul className="space-y-2 text-xs text-[#000080]/70 font-semibold leading-relaxed">
                               <li className="flex items-start gap-3"><span className="text-[#138808]">✓</span> Carry all {selectedOption?.docs.length ?? 0} original documents.</li>
                               <li className="flex items-start gap-3"><span className="text-[#138808]">✓</span> Reach by {appointment.slot?.split(' - ')[0] || 'N/A'}.</li>
                               <li className="flex items-start gap-3"><span className="text-[#138808]">✓</span> Office Processing: <span className="text-[#FF9933]">{selectedService.officeTime}</span>.</li>
@@ -1186,7 +1186,7 @@ export default function ServicesPage() {
                     </div>
                   </div>
                   
-                  <button onClick={closeModal} className="w-full bg-[#000080] text-white py-8 rounded-[3rem] font-black text-3xl hover:bg-[#000060] transition-all shadow-2xl shadow-navy/20">Return to Dashboard</button>
+                  <button onClick={closeModal} className="w-full bg-[#000080] text-white py-4 rounded-xl font-bold text-base hover:bg-[#000060] transition-all shadow-md">Return to Dashboard</button>
                 </div>
               )}
             </div>
