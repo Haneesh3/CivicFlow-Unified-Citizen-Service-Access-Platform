@@ -7,16 +7,12 @@ import { api } from '@/lib/api';
 import Link from 'next/link';
 import { Navigation, LogIn, Mail, Lock, AlertCircle, UserRound, ChevronDown } from 'lucide-react';
 
-type LoginRole = 'USER' | 'ADMIN';
-
-const ROLE_REDIRECTS: Record<LoginRole, string> = {
-  USER: '/',
+const ROLE_REDIRECTS: Record<string, string> = {
+  SUPER_ADMIN: '/admin/users',
   ADMIN: '/admin/dashboard',
-};
-
-const getRoleGroup = (role?: string): LoginRole => {
-  const normalizedRole = role?.toUpperCase();
-  return normalizedRole === 'ADMIN' || normalizedRole === 'STAFF' || normalizedRole === 'OFFICER' ? 'ADMIN' : 'USER';
+  STAFF: '/admin/dashboard',
+  OFFICER: '/admin/dashboard',
+  CITIZEN: '/',
 };
 
 const getLoginErrorMessage = (err: unknown) => {
@@ -28,7 +24,6 @@ const getLoginErrorMessage = (err: unknown) => {
 export default function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [selectedRole, setSelectedRole] = useState<LoginRole>('USER');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
@@ -43,24 +38,15 @@ export default function LoginPage() {
       const response = await api.post('/auth/login', {
         email,
         password,
-        role: selectedRole,
       });
 
       const { access_token, user: apiUser } = response.data;
 
       if (access_token && apiUser) {
-        const accountRole = getRoleGroup(apiUser.role);
-
-        if (accountRole !== selectedRole) {
-          setToken(null);
-          setUser(null);
-          setError(`This account is registered as ${accountRole === 'ADMIN' ? 'Admin' : 'User'}. Please select the correct role.`);
-          return;
-        }
-
         setToken(access_token);
         setUser(apiUser);
-        router.push(ROLE_REDIRECTS[accountRole]);
+        const destination = ROLE_REDIRECTS[apiUser.role] || '/';
+        router.push(destination);
       }
 
     } catch (err: unknown) {
@@ -114,22 +100,7 @@ export default function LoginPage() {
               </div>
             )}
 
-            <div className="space-y-2">
-              <label className="text-sm font-bold text-[#000080]/60 uppercase tracking-wider ml-1">Role</label>
-              <div className="relative group">
-                <UserRound className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400 group-focus-within:text-[#FF9933] transition-colors" size={20} />
-                <select
-                  required
-                  className="w-full appearance-none bg-zinc-50 border border-zinc-200 rounded-2xl py-4 pl-12 pr-12 text-[#000080] focus:bg-white focus:ring-4 focus:ring-[#FF9933]/10 focus:border-[#FF9933] outline-none transition-all font-medium"
-                  value={selectedRole}
-                  onChange={(e) => setSelectedRole(e.target.value as LoginRole)}
-                >
-                  <option value="USER">User</option>
-                  <option value="ADMIN">Admin</option>
-                </select>
-                <ChevronDown className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-zinc-400 group-focus-within:text-[#FF9933] transition-colors" size={20} />
-              </div>
-            </div>
+
 
             <div className="space-y-2">
               <label className="text-sm font-bold text-[#000080]/60 uppercase tracking-wider ml-1">Email Address</label>
