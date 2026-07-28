@@ -52,6 +52,7 @@ export default function ReportIssuePage() {
   
   const [image, setImage] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [coords, setCoords] = useState<{ latitude: number; longitude: number } | null>(null);
 
   useEffect(() => {
     async function autoDetectLocation() {
@@ -59,6 +60,7 @@ export default function ReportIssuePage() {
       if (typeof window !== 'undefined' && navigator.geolocation) {
         navigator.geolocation.getCurrentPosition(
           async (position) => {
+            setCoords({ latitude: position.coords.latitude, longitude: position.coords.longitude });
             if (ipstackKey) {
               try {
                 const ipData = await getIpLocation(ipstackKey);
@@ -80,14 +82,20 @@ export default function ReportIssuePage() {
             console.warn('GPS denied, checking IPstack:', err);
             if (ipstackKey) {
               const ipData = await getIpLocation(ipstackKey);
+              setCoords({ latitude: ipData.latitude, longitude: ipData.longitude });
               setFormData(prev => ({ ...prev, address: ipData.address }));
+            } else {
+              setCoords(DEFAULT_COORDS);
             }
           },
           { timeout: 3000 }
         );
       } else if (ipstackKey) {
         const ipData = await getIpLocation(ipstackKey);
+        setCoords({ latitude: ipData.latitude, longitude: ipData.longitude });
         setFormData(prev => ({ ...prev, address: ipData.address }));
+      } else {
+        setCoords(DEFAULT_COORDS);
       }
     }
     autoDetectLocation();
@@ -120,30 +128,8 @@ export default function ReportIssuePage() {
     setLoading(true);
 
     try {
-      let latitude = DEFAULT_COORDS.latitude;
-      let longitude = DEFAULT_COORDS.longitude;
-      const ipstackKey = process.env.NEXT_PUBLIC_IPSTACK_API_KEY;
-
-      if (typeof window !== 'undefined' && navigator.geolocation) {
-        try {
-          const position = await new Promise<GeolocationPosition>((resolve, reject) => {
-            navigator.geolocation.getCurrentPosition(resolve, reject, { timeout: 3000 });
-          });
-          latitude = position.coords.latitude;
-          longitude = position.coords.longitude;
-        } catch (geoErr) {
-          console.warn('Geolocation failed or timed out, checking IPstack:', geoErr);
-          if (ipstackKey) {
-            const ipData = await getIpLocation(ipstackKey);
-            latitude = ipData.latitude;
-            longitude = ipData.longitude;
-            // Optionally autofill address if blank
-            if (!formData.address) {
-              setFormData(prev => ({ ...prev, address: ipData.address }));
-            }
-          }
-        }
-      }
+      let latitude = coords?.latitude || DEFAULT_COORDS.latitude;
+      let longitude = coords?.longitude || DEFAULT_COORDS.longitude;
 
       // Add small random offset to prevent duplicate ticket matching
       latitude += (Math.random() - 0.5) * 0.01;
@@ -292,7 +278,30 @@ export default function ReportIssuePage() {
                 onChange={(e) => setFormData({...formData, address: e.target.value})}
               />
             </div>
-            <p className="text-[10px] text-zinc-400 font-bold text-center">GPS coordinates will be automatically attached to your submission</p>
+            
+            {coords && (
+              <div className="space-y-3 mt-4">
+                <label className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-400 ml-2 block">Map Preview</label>
+                <div className="w-full h-64 rounded-[2rem] overflow-hidden border border-zinc-200 shadow-inner relative">
+                  <iframe
+                    width="100%"
+                    height="100%"
+                    style={{ border: 0 }}
+                    loading="lazy"
+                    allowFullScreen
+                    referrerPolicy="no-referrer-when-downgrade"
+                    src={`https://maps.google.com/maps?q=${coords.latitude},${coords.longitude}&t=&z=15&ie=UTF8&iwloc=&output=embed`}
+                    className="w-full h-full object-cover animate-fade-in"
+                  />
+                </div>
+                <div className="flex items-center gap-2 text-xs font-bold text-zinc-500 justify-center">
+                  <MapPin className="w-4 h-4 text-[#FF9933]" />
+                  <span>Automatically detected your location</span>
+                </div>
+              </div>
+            )}
+            
+            <p className="text-[10px] text-zinc-400 font-bold text-center mt-2">GPS coordinates will be automatically attached to your submission</p>
           </div>
 
           {/* Submit Button */}
