@@ -948,19 +948,15 @@ export default function ServicesPage() {
                     <h4 className="text-6xl font-black text-[#000080] tracking-tighter">Success!</h4>
                     
                     <div className="bg-[#f8f9fa] rounded-[4rem] border-4 border-zinc-50 p-12 max-w-lg mx-auto shadow-inner relative overflow-hidden text-left space-y-8">
-                        <div className="space-y-6">
-                           <div className="flex justify-between items-center">
-                              <span className="text-[10px] font-black uppercase tracking-[0.3em] text-zinc-300">Reference ID</span>
-                              <span className="text-[#FF9933] font-black text-3xl font-mono">{refId}</span>
-                           </div>
-                           <div className="flex justify-between items-center">
-                              <span className="text-[10px] font-black uppercase tracking-[0.3em] text-zinc-300">Center</span>
-                              <span className="text-[#000080] font-black text-2xl">{selectedCenter?.name}</span>
-                           </div>
-                           <div className="flex justify-between items-center">
-                              <span className="text-[10px] font-black uppercase tracking-[0.3em] text-zinc-300">Slot</span>
-                              <span className="text-[#000080] font-black text-2xl">{new Date(appointment.date).toDateString()} @ {appointment.slot}</span>
-                           </div>
+                        <div className="grid grid-cols-[100px_1fr] items-baseline gap-y-4 gap-x-2">
+                           <span className="text-[10px] font-black uppercase tracking-[0.3em] text-zinc-300">Reference ID</span>
+                           <span className="text-[#FF9933] font-black text-3xl font-mono text-right">{refId}</span>
+
+                           <span className="text-[10px] font-black uppercase tracking-[0.3em] text-zinc-300">Center</span>
+                           <span className="text-[#000080] font-black text-2xl text-right">{selectedCenter?.name}</span>
+
+                           <span className="text-[10px] font-black uppercase tracking-[0.3em] text-zinc-300">Slot</span>
+                           <span className="text-[#000080] font-black text-lg sm:text-xl text-right leading-tight break-words">{new Date(appointment.date).toDateString()} @ {appointment.slot}</span>
                         </div>
 
                         <div className="bg-white border-2 border-orange-100 rounded-[2.5rem] p-10 space-y-6 relative z-10">
