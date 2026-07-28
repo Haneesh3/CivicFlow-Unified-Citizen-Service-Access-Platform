@@ -5,6 +5,8 @@
   --color-india-green: #138808;
   --color-navy: #000080;
   --color-ash: #f8f9fa;
+  --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, monospace;
 }
 
 :root {
