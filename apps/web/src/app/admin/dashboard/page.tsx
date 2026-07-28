@@ -4,9 +4,12 @@ import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useQuery } from '@tanstack/react-query';
 import { api } from '@/lib/api';
+import { useAuthStore } from '@/lib/store';
 import { AlertCircle, CheckCircle2, Clock, Users, BarChart3, MapPin } from 'lucide-react';
 
 export default function AdminDashboard() {
+  const { user } = useAuthStore();
+  
   const { data: stats } = useQuery({
     queryKey: ['admin-stats'],
     queryFn: async () => {
@@ -31,7 +34,7 @@ export default function AdminDashboard() {
         <div className="flex gap-4">
           <div className="flex items-center gap-2 px-4 py-2 bg-white rounded-lg shadow-sm border">
             <MapPin className="w-4 h-4 text-slate-500" />
-            <span className="text-sm font-medium">Region: Delhi Central</span>
+            <span className="text-sm font-medium">Region: {user?.city || 'Delhi Central'}</span>
           </div>
         </div>
       </div>

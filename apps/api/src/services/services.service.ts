@@ -18,9 +18,50 @@ export class ServicesService {
     });
   }
 
+  getCityFromCoords(lat: number, lng: number): string {
+    // Chennai: lat ~ 13.08, lng ~ 80.27
+    if (Math.abs(lat - 13.08) < 1.5 && Math.abs(lng - 80.27) < 1.5) {
+      return 'Chennai';
+    }
+    // Mumbai: lat ~ 19.07, lng ~ 72.87
+    if (Math.abs(lat - 19.07) < 1.5 && Math.abs(lng - 72.87) < 1.5) {
+      return 'Mumbai';
+    }
+    // Bengaluru: lat ~ 12.97, lng ~ 77.59
+    if (Math.abs(lat - 12.97) < 1.5 && Math.abs(lng - 77.59) < 1.5) {
+      return 'Bengaluru';
+    }
+    // Delhi: lat ~ 28.61, lng ~ 77.20
+    if (Math.abs(lat - 28.61) < 2.0 && Math.abs(lng - 77.20) < 2.0) {
+      return 'Delhi';
+    }
+    return 'Delhi';
+  }
+
   async createApplication(userId: string, payload: any) {
-    const { appointmentDate, appointmentSlot, data, ...rest } = payload;
+    const { appointmentDate, appointmentSlot, data, serviceCenterId, ...rest } = payload;
     const { serviceTitle, subService } = data;
+
+    // Auto-update user's profile city if the selected center city matches coordinates
+    try {
+      if (serviceCenterId) {
+        const center = await this.prisma.serviceCenter.findUnique({
+          where: { id: serviceCenterId }
+        });
+        if (center && center.lat && center.lng) {
+          const detectedCity = this.getCityFromCoords(center.lat, center.lng);
+          const user = await this.prisma.user.findUnique({ where: { id: userId } });
+          if (user && (!user.city || user.city.toLowerCase() !== detectedCity.toLowerCase())) {
+            await this.prisma.user.update({
+              where: { id: userId },
+              data: { city: detectedCity }
+            });
+          }
+        }
+      }
+    } catch (e) {
+      console.warn('Failed to update user city on application submission:', e);
+    }
     
     // Generate a unique reference ID (e.g., CF-A1B2C3)
     const referenceId = `CF-${Math.random().toString(36).substring(2, 8).toUpperCase()}`;
@@ -28,6 +69,7 @@ export class ServicesService {
     const application = await this.prisma.serviceApplication.create({
       data: {
         ...rest,
+        serviceCenterId,
         data,
         referenceId,
         appointmentDate: appointmentDate ? new Date(appointmentDate) : null,
