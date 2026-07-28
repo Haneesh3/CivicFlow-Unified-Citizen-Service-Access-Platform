@@ -48,15 +48,21 @@ export class AuthService {
 
 
   private isRoleAllowed(userRole: string, requestedRole?: string): boolean {
-    const normalizedUserRole = this.normalizeRole(userRole) || 'CITIZEN';
-    const normalizedRequestedRole = this.normalizeRole(requestedRole);
+    const normalizedUserRole = (this.normalizeRole(userRole) || 'CITIZEN') as any;
+
+    // Admins and Super Admins are always authorized to log in
+    if (normalizedUserRole === 'ADMIN' || normalizedUserRole === 'SUPER_ADMIN') {
+      return true;
+    }
+
+    const normalizedRequestedRole = (this.normalizeRole(requestedRole)) as any;
 
     if (!normalizedRequestedRole) {
       return true;
     }
 
-    if (normalizedRequestedRole === Role.ADMIN) {
-      return normalizedUserRole === Role.ADMIN || normalizedUserRole === Role.STAFF;
+    if (normalizedRequestedRole === 'ADMIN') {
+      return normalizedUserRole === 'ADMIN' || normalizedUserRole === 'STAFF';
     }
 
     return normalizedUserRole === normalizedRequestedRole;
