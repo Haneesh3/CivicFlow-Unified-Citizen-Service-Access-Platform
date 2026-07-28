@@ -1158,29 +1158,29 @@ export default function ServicesPage() {
                   </div>
                   
                   <div className="space-y-4">
-                    <h4 className="text-4xl font-black text-[#000080] tracking-tighter">Success!</h4>
+                    <h4 className="text-3xl font-bold text-[#000080] tracking-tighter">Success!</h4>
                     
-                    <div className="bg-[#f8f9fa] rounded-[2.5rem] border-2 border-zinc-50 p-6 max-w-md mx-auto shadow-inner relative overflow-hidden text-left space-y-4">
+                    <div className="bg-[#f8f9fa] rounded-[2.5rem] border border-zinc-100 p-6 max-w-md mx-auto shadow-inner relative overflow-hidden text-left space-y-4">
                         <div className="grid grid-cols-[100px_1fr] items-baseline gap-y-3 gap-x-2">
-                           <span className="text-[10px] font-black uppercase tracking-[0.3em] text-zinc-300">Reference ID</span>
-                           <span className="text-[#FF9933] font-black text-2xl font-mono text-right">{refId}</span>
+                           <span className="text-[10px] font-bold uppercase tracking-[0.15em] text-zinc-400">Reference ID</span>
+                           <span className="text-[#FF9933] font-bold text-xl font-mono text-right">{refId}</span>
 
-                           <span className="text-[10px] font-black uppercase tracking-[0.3em] text-zinc-300">Center</span>
-                           <span className="text-[#000080] font-black text-lg text-right">{selectedCenter?.name}</span>
+                           <span className="text-[10px] font-bold uppercase tracking-[0.15em] text-zinc-400">Center</span>
+                           <span className="text-[#000080] font-semibold text-base text-right">{selectedCenter?.name}</span>
 
-                           <span className="text-[10px] font-black uppercase tracking-[0.3em] text-zinc-300">Slot</span>
-                           <span className="text-[#000080] font-black text-sm text-right leading-tight break-words">{new Date(appointment.date).toDateString()} @ {appointment.slot}</span>
+                           <span className="text-[10px] font-bold uppercase tracking-[0.15em] text-zinc-400">Slot</span>
+                           <span className="text-[#000080] font-medium text-xs text-right leading-tight break-words">{new Date(appointment.date).toDateString()} @ {appointment.slot}</span>
                         </div>
 
                         <div className="bg-white border border-orange-100 rounded-2xl p-5 space-y-3 relative z-10">
-                           <div className="flex items-center gap-3 text-[#FF9933] font-black text-[10px] uppercase tracking-widest">
+                           <div className="flex items-center gap-3 text-[#FF9933] font-bold text-[10px] uppercase tracking-widest">
                               <RenderIcon name="alert" size={18} /> Critical Instructions
                            </div>
-                           <ul className="space-y-2 text-xs text-[#000080]/70 font-semibold leading-relaxed">
+                           <ul className="space-y-2 text-xs text-[#000080]/70 font-medium leading-relaxed">
                               <li className="flex items-start gap-3"><span className="text-[#138808]">✓</span> Carry all {selectedOption?.docs.length ?? 0} original documents.</li>
                               <li className="flex items-start gap-3"><span className="text-[#138808]">✓</span> Reach by {appointment.slot?.split(' - ')[0] || 'N/A'}.</li>
-                              <li className="flex items-start gap-3"><span className="text-[#138808]">✓</span> Office Processing: <span className="text-[#FF9933]">{selectedService.officeTime}</span>.</li>
-                              <li className="flex items-start gap-3"><span className="text-[#138808]">✓</span> Update Delivery: <span className="text-[#FF9933]">{selectedOption?.totalTime}</span>.</li>
+                              <li className="flex items-start gap-3"><span className="text-[#138808]">✓</span> Office Processing: <span className="text-[#FF9933] font-semibold">{selectedService.officeTime}</span>.</li>
+                              <li className="flex items-start gap-3"><span className="text-[#138808]">✓</span> Update Delivery: <span className="text-[#FF9933] font-semibold">{selectedOption?.totalTime}</span>.</li>
                            </ul>
                         </div>
                     </div>
