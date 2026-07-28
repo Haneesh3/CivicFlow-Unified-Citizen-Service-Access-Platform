@@ -525,12 +525,35 @@ export default function ServicesPage() {
   const router = useRouter();
   const [centers, setCenters] = useState<ServiceCenter[]>(CENTERS);
   const [activeMapCenter, setActiveMapCenter] = useState<ServiceCenter | null>(null);
+  const [activeCity, setActiveCity] = useState<string>('Delhi');
   const { user } = useAuthStore();
 
+  const getCityFromCoords = (lat: number, lng: number): string => {
+    // Chennai: lat ~ 13.08, lng ~ 80.27
+    if (Math.abs(lat - 13.08) < 1.5 && Math.abs(lng - 80.27) < 1.5) {
+      return 'chennai';
+    }
+    // Mumbai: lat ~ 19.07, lng ~ 72.87
+    if (Math.abs(lat - 19.07) < 1.5 && Math.abs(lng - 72.87) < 1.5) {
+      return 'mumbai';
+    }
+    // Bengaluru: lat ~ 12.97, lng ~ 77.59
+    if (Math.abs(lat - 12.97) < 1.5 && Math.abs(lng - 77.59) < 1.5) {
+      return 'bengaluru';
+    }
+    // Delhi: lat ~ 28.61, lng ~ 77.20
+    if (Math.abs(lat - 28.61) < 2.0 && Math.abs(lng - 77.20) < 2.0) {
+      return 'delhi';
+    }
+    return 'delhi'; // Default fallback
+  };
+
   const getLocalizedCenter = (centerId: string, city?: string) => {
-    const normalizedCity = city?.trim().toLowerCase() || 'delhi';
+    const normalizedCity = city?.trim() || 'Delhi';
+    const capitalizedCity = normalizedCity.charAt(0).toUpperCase() + normalizedCity.slice(1).toLowerCase();
+    const cityLower = normalizedCity.toLowerCase();
     
-    if (normalizedCity.includes('chennai')) {
+    if (cityLower.includes('chennai')) {
       switch (centerId) {
         case 'c1': return { name: 'Zonal Office - South Chennai', location: 'Guindy', staff: 'Officer Ramesh Kumar' };
         case 'c2': return { name: 'Passport Seva Kendra (PSK)', location: 'Aminjikarai', staff: 'Officer M. Selvam' };
@@ -539,7 +562,7 @@ export default function ServicesPage() {
       }
     }
     
-    if (normalizedCity.includes('mumbai')) {
+    if (cityLower.includes('mumbai')) {
       switch (centerId) {
         case 'c1': return { name: 'Zonal Office - South Mumbai', location: 'Colaba', staff: 'Officer Amit Patil' };
         case 'c2': return { name: 'Passport Seva Kendra (PSK)', location: 'Lower Parel', staff: 'Officer Priya Sharma' };
@@ -548,7 +571,7 @@ export default function ServicesPage() {
       }
     }
 
-    if (normalizedCity.includes('bengaluru') || normalizedCity.includes('bangalore')) {
+    if (cityLower.includes('bengaluru') || cityLower.includes('bangalore')) {
       switch (centerId) {
         case 'c1': return { name: 'Zonal Office - South Bengaluru', location: 'Jayanagar', staff: 'Officer H. Gowda' };
         case 'c2': return { name: 'Passport Seva Kendra (PSK)', location: 'Lalbagh', staff: 'Officer Lakshmi Rao' };
@@ -557,12 +580,12 @@ export default function ServicesPage() {
       }
     }
 
-    // Fallback to Delhi defaults
+    // Dynamic generation for any other city!
     switch (centerId) {
-      case 'c1': return { name: 'Zonal Office - South Delhi', location: 'Saket', staff: 'Officer Rajesh Kumar' };
-      case 'c2': return { name: 'Passport Seva Kendra (PSK)', location: 'R.K. Puram', staff: 'Officer Meera Singh' };
-      case 'c3': return { name: 'Citizen Resource Center', location: 'Okhla Phase III', staff: 'Officer Amit Sharma' };
-      case 'c4': return { name: 'Municipal HQ', location: 'Civic Center', staff: 'Officer Sunita Rao' };
+      case 'c1': return { name: `Zonal Office - South ${capitalizedCity}`, location: 'Metro Area', staff: 'Officer Rajesh Kumar' };
+      case 'c2': return { name: `Passport Seva Kendra (PSK) - ${capitalizedCity}`, location: 'Central Town', staff: 'Officer Meera Singh' };
+      case 'c3': return { name: `Citizen Resource Center - ${capitalizedCity}`, location: 'Civic Hub', staff: 'Officer Amit Sharma' };
+      case 'c4': return { name: `Municipal HQ - ${capitalizedCity}`, location: 'City Center', staff: 'Officer Sunita Rao' };
       default: return { name: 'Local Citizen Desk', location: 'Central Ward', staff: 'Officer A. K. Azad' };
     }
   };
@@ -587,16 +610,33 @@ export default function ServicesPage() {
         coords = cityCoords[cityKey];
       }
 
-      // 2. Try browser geolocation
+      // 2. Try fetching coordinates and city from free public IP API (more reliable for city lookup)
+      try {
+        const res = await fetch('https://ipapi.co/json/');
+        if (res.ok) {
+          const data = await res.json();
+          if (data.latitude && data.longitude) {
+            coords = { latitude: data.latitude, longitude: data.longitude };
+            if (data.city) {
+              detectedCity = data.city;
+            }
+          }
+        }
+      } catch (err) {
+        console.warn('ipapi.co failed:', err);
+      }
+
+      // 3. Try browser geolocation
       if (typeof window !== 'undefined' && navigator.geolocation) {
         try {
           const position = await new Promise<GeolocationPosition>((resolve, reject) => {
             navigator.geolocation.getCurrentPosition(resolve, reject, { timeout: 3000 });
           });
           coords = { latitude: position.coords.latitude, longitude: position.coords.longitude };
+          detectedCity = getCityFromCoords(coords.latitude, coords.longitude);
         } catch {
-          // Geolocation rejected/timed out, try IP-based location
-          if (ipstackKey) {
+          // If GPS fails, and IP API also failed, try IPstack fallback
+          if (coords === DEFAULT_COORDS && ipstackKey) {
             try {
               const ipLocation = await getIpLocation(ipstackKey);
               coords = { latitude: ipLocation.latitude, longitude: ipLocation.longitude };
@@ -607,16 +647,6 @@ export default function ServicesPage() {
               console.warn('IPstack failed:', err);
             }
           }
-        }
-      } else if (ipstackKey) {
-        try {
-          const ipLocation = await getIpLocation(ipstackKey);
-          coords = { latitude: ipLocation.latitude, longitude: ipLocation.longitude };
-          if (ipLocation.city) {
-            detectedCity = ipLocation.city;
-          }
-        } catch (err) {
-          console.warn('IPstack failed:', err);
         }
       }
 
@@ -649,6 +679,8 @@ export default function ServicesPage() {
       if (calculated.length > 0) {
         setActiveMapCenter(calculated[0]);
       }
+      const formattedCity = detectedCity.charAt(0).toUpperCase() + detectedCity.slice(1).toLowerCase();
+      setActiveCity(formattedCity);
     }
     resolveCenters();
   }, [user]);
@@ -675,6 +707,48 @@ export default function ServicesPage() {
   const [activeCategory, setActiveCategory] = useState('All');
   const [searchQuery, setSearchQuery] = useState('');
   
+  const handleCityChange = (city: string) => {
+    setActiveCity(city);
+    
+    const cityCoords: Record<string, typeof DEFAULT_COORDS> = {
+      Delhi: { latitude: 28.6139, longitude: 77.2090 },
+      Chennai: { latitude: 13.0827, longitude: 80.2707 },
+      Mumbai: { latitude: 19.0760, longitude: 72.8777 },
+      Bengaluru: { latitude: 12.9716, longitude: 77.5946 },
+    };
+
+    const coords = cityCoords[city] || DEFAULT_COORDS;
+    
+    const offsets = [
+      { id: 'c1', latOff: -0.015, lngOff: -0.02 },
+      { id: 'c2', latOff: 0.02, lngOff: -0.03 },
+      { id: 'c3', latOff: 0.008, lngOff: 0.01 },
+      { id: 'c4', latOff: 0.04, lngOff: 0.04 }
+    ];
+
+    const calculated = offsets.map(offset => {
+      const localized = getLocalizedCenter(offset.id, city);
+      const centerLat = coords.latitude + offset.latOff;
+      const centerLng = coords.longitude + offset.lngOff;
+      const dist = calculateDistance(coords.latitude, coords.longitude, centerLat, centerLng);
+      
+      return {
+        id: offset.id,
+        name: localized.name,
+        location: localized.location,
+        distance: `${dist.toFixed(1)} km`,
+        staff: localized.staff,
+        lat: centerLat,
+        lng: centerLng
+      };
+    }).sort((a, b) => parseFloat(a.distance) - parseFloat(b.distance));
+
+    setCenters(calculated);
+    if (calculated.length > 0) {
+      setActiveMapCenter(calculated[0]);
+    }
+  };
+
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
   const [appointment, setAppointment] = useState({ date: '', slot: '' });
@@ -930,9 +1004,24 @@ export default function ServicesPage() {
               {/* Step 3: Center */}
               {step === 3 && (
                 <div className="space-y-8 animate-fade-in">
-                  <div className="flex items-center justify-between bg-zinc-50 p-8 rounded-[2rem] border border-zinc-100">
-                     <h4 className="text-[10px] font-black uppercase tracking-widest text-zinc-400">Nearest Service Centers</h4>
-                     <span className="text-[10px] font-black text-blue-600 bg-white px-4 py-2 rounded-full uppercase tracking-widest shadow-sm">Location Active</span>
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-zinc-50 p-8 rounded-[2rem] border border-zinc-100">
+                     <div className="flex flex-col text-left">
+                        <h4 className="text-[10px] font-black uppercase tracking-widest text-zinc-400">Nearest Service Centers</h4>
+                        <span className="text-xs text-zinc-500 font-bold mt-1">Current City: {activeCity}</span>
+                     </div>
+                     <div className="flex items-center gap-3">
+                        <select 
+                          value={activeCity}
+                          onChange={(e) => handleCityChange(e.target.value)}
+                          className="appearance-none bg-white border border-zinc-200 rounded-xl px-4 py-2 text-xs font-bold text-[#000080] outline-none shadow-sm focus:ring-2 focus:ring-[#FF9933]/10"
+                        >
+                          <option value="Delhi">Delhi</option>
+                          <option value="Chennai">Chennai</option>
+                          <option value="Mumbai">Mumbai</option>
+                          <option value="Bengaluru">Bengaluru</option>
+                        </select>
+                        <span className="text-[10px] font-black text-blue-600 bg-white px-4 py-2 rounded-full uppercase tracking-widest shadow-sm shrink-0">Location Active</span>
+                     </div>
                   </div>
                   <div className="grid grid-cols-1 gap-4">
                     {centers.map(center => (
