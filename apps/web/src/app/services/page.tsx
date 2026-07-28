@@ -69,6 +69,8 @@ type ServiceCenter = {
   location: string;
   distance: string;
   staff: string;
+  lat?: number;
+  lng?: number;
 };
 
 type CitizenService = {
@@ -522,33 +524,134 @@ const PUBLIC_HOLIDAYS = [
 export default function ServicesPage() {
   const router = useRouter();
   const [centers, setCenters] = useState<ServiceCenter[]>(CENTERS);
+  const [activeMapCenter, setActiveMapCenter] = useState<ServiceCenter | null>(null);
+  const { user } = useAuthStore();
+
+  const getLocalizedCenter = (centerId: string, city?: string) => {
+    const normalizedCity = city?.trim().toLowerCase() || 'delhi';
+    
+    if (normalizedCity.includes('chennai')) {
+      switch (centerId) {
+        case 'c1': return { name: 'Zonal Office - South Chennai', location: 'Guindy', staff: 'Officer Ramesh Kumar' };
+        case 'c2': return { name: 'Passport Seva Kendra (PSK)', location: 'Aminjikarai', staff: 'Officer M. Selvam' };
+        case 'c3': return { name: 'Citizen Resource Center', location: 'T. Nagar', staff: 'Officer K. Priya' };
+        case 'c4': return { name: 'Municipal HQ', location: 'Ripon Building', staff: 'Officer S. Anbarasan' };
+      }
+    }
+    
+    if (normalizedCity.includes('mumbai')) {
+      switch (centerId) {
+        case 'c1': return { name: 'Zonal Office - South Mumbai', location: 'Colaba', staff: 'Officer Amit Patil' };
+        case 'c2': return { name: 'Passport Seva Kendra (PSK)', location: 'Lower Parel', staff: 'Officer Priya Sharma' };
+        case 'c3': return { name: 'Citizen Resource Center', location: 'Andheri West', staff: 'Officer Rahul Deshmukh' };
+        case 'c4': return { name: 'Municipal HQ', location: 'BMC Headquarters', staff: 'Officer V. Kulkarni' };
+      }
+    }
+
+    if (normalizedCity.includes('bengaluru') || normalizedCity.includes('bangalore')) {
+      switch (centerId) {
+        case 'c1': return { name: 'Zonal Office - South Bengaluru', location: 'Jayanagar', staff: 'Officer H. Gowda' };
+        case 'c2': return { name: 'Passport Seva Kendra (PSK)', location: 'Lalbagh', staff: 'Officer Lakshmi Rao' };
+        case 'c3': return { name: 'Citizen Resource Center', location: 'Koramangala', staff: 'Officer N. Kumar' };
+        case 'c4': return { name: 'Municipal HQ', location: 'BBMP Offices', staff: 'Officer S. Murthy' };
+      }
+    }
+
+    // Fallback to Delhi defaults
+    switch (centerId) {
+      case 'c1': return { name: 'Zonal Office - South Delhi', location: 'Saket', staff: 'Officer Rajesh Kumar' };
+      case 'c2': return { name: 'Passport Seva Kendra (PSK)', location: 'R.K. Puram', staff: 'Officer Meera Singh' };
+      case 'c3': return { name: 'Citizen Resource Center', location: 'Okhla Phase III', staff: 'Officer Amit Sharma' };
+      case 'c4': return { name: 'Municipal HQ', location: 'Civic Center', staff: 'Officer Sunita Rao' };
+      default: return { name: 'Local Citizen Desk', location: 'Central Ward', staff: 'Officer A. K. Azad' };
+    }
+  };
 
   useEffect(() => {
     async function resolveCenters() {
       const ipstackKey = process.env.NEXT_PUBLIC_IPSTACK_API_KEY;
       let coords = DEFAULT_COORDS;
+      let detectedCity = user?.city || 'Delhi';
       
-      if (ipstackKey) {
-        const ipLocation = await getIpLocation(ipstackKey);
-        coords = { latitude: ipLocation.latitude, longitude: ipLocation.longitude };
+      const cityCoords: Record<string, typeof DEFAULT_COORDS> = {
+        chennai: { latitude: 13.0827, longitude: 80.2707 },
+        mumbai: { latitude: 19.0760, longitude: 72.8777 },
+        bengaluru: { latitude: 12.9716, longitude: 77.5946 },
+        bangalore: { latitude: 12.9716, longitude: 77.5946 },
+        delhi: { latitude: 28.6139, longitude: 77.2090 },
+      };
+
+      // 1. Check if user city matches defaults to initialize coordinates
+      const cityKey = detectedCity.trim().toLowerCase();
+      if (cityCoords[cityKey]) {
+        coords = cityCoords[cityKey];
       }
 
-      const calculated = CENTERS_WITH_COORDS.map(center => {
-        const dist = calculateDistance(coords.latitude, coords.longitude, center.lat, center.lng);
+      // 2. Try browser geolocation
+      if (typeof window !== 'undefined' && navigator.geolocation) {
+        try {
+          const position = await new Promise<GeolocationPosition>((resolve, reject) => {
+            navigator.geolocation.getCurrentPosition(resolve, reject, { timeout: 3000 });
+          });
+          coords = { latitude: position.coords.latitude, longitude: position.coords.longitude };
+        } catch {
+          // Geolocation rejected/timed out, try IP-based location
+          if (ipstackKey) {
+            try {
+              const ipLocation = await getIpLocation(ipstackKey);
+              coords = { latitude: ipLocation.latitude, longitude: ipLocation.longitude };
+              if (ipLocation.city) {
+                detectedCity = ipLocation.city;
+              }
+            } catch (err) {
+              console.warn('IPstack failed:', err);
+            }
+          }
+        }
+      } else if (ipstackKey) {
+        try {
+          const ipLocation = await getIpLocation(ipstackKey);
+          coords = { latitude: ipLocation.latitude, longitude: ipLocation.longitude };
+          if (ipLocation.city) {
+            detectedCity = ipLocation.city;
+          }
+        } catch (err) {
+          console.warn('IPstack failed:', err);
+        }
+      }
+
+      // Project centers within 25km using small lat/lng offsets from current coords
+      const offsets = [
+        { id: 'c1', latOff: -0.015, lngOff: -0.02 },
+        { id: 'c2', latOff: 0.02, lngOff: -0.03 },
+        { id: 'c3', latOff: 0.008, lngOff: 0.01 },
+        { id: 'c4', latOff: 0.04, lngOff: 0.04 }
+      ];
+
+      const calculated = offsets.map(offset => {
+        const localized = getLocalizedCenter(offset.id, detectedCity);
+        const centerLat = coords.latitude + offset.latOff;
+        const centerLng = coords.longitude + offset.lngOff;
+        const dist = calculateDistance(coords.latitude, coords.longitude, centerLat, centerLng);
+        
         return {
-          id: center.id,
-          name: center.name,
-          location: center.location,
+          id: offset.id,
+          name: localized.name,
+          location: localized.location,
           distance: `${dist.toFixed(1)} km`,
-          staff: center.staff
+          staff: localized.staff,
+          lat: centerLat,
+          lng: centerLng
         };
       }).sort((a, b) => parseFloat(a.distance) - parseFloat(b.distance));
 
       setCenters(calculated);
+      if (calculated.length > 0) {
+        setActiveMapCenter(calculated[0]);
+      }
     }
     resolveCenters();
-  }, []);
-  const { user } = useAuthStore();
+  }, [user]);
   const roleView = getRoleView(user?.role);
   const serviceCatalog = roleView === 'admin' ? ADMIN_SERVICES : SERVICES;
   const categories = getCategories(serviceCatalog);
@@ -839,6 +942,7 @@ export default function ServicesPage() {
                           setSelectedCenter(center);
                           setStep(4);
                         }}
+                        onMouseEnter={() => setActiveMapCenter(center)}
                         className="w-full bg-white border-2 border-zinc-50 hover:border-[#138808]/50 p-8 rounded-[3rem] flex items-center justify-between group transition-all shadow-sm hover:shadow-xl text-left"
                       >
                         <div className="flex items-center gap-8">
@@ -857,6 +961,27 @@ export default function ServicesPage() {
                       </button>
                     ))}
                   </div>
+
+                  {activeMapCenter && (
+                    <div className="space-y-4 mt-6">
+                      <div className="flex items-center gap-2 text-xs font-bold text-zinc-500 justify-center">
+                        <RenderIcon name="map-pin" size={16} className="text-[#FF9933]" />
+                        <span>Office Map Locator ({activeMapCenter.name} - {activeMapCenter.location})</span>
+                      </div>
+                      <div className="w-full h-64 rounded-[2rem] overflow-hidden border border-zinc-200 shadow-inner relative">
+                        <iframe
+                          width="100%"
+                          height="100%"
+                          style={{ border: 0 }}
+                          loading="lazy"
+                          allowFullScreen
+                          referrerPolicy="no-referrer-when-downgrade"
+                          src={`https://maps.google.com/maps?q=${activeMapCenter.lat},${activeMapCenter.lng}&t=&z=14&ie=UTF8&iwloc=&output=embed`}
+                          className="w-full h-full object-cover animate-fade-in"
+                        />
+                      </div>
+                    </div>
+                  )}
                 </div>
               )}
 
