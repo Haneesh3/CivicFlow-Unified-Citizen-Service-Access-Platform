@@ -1,4 +1,4 @@
-import { Controller, Get, Patch, Body, UseGuards, Request, Param, UnauthorizedException } from '@nestjs/common';
+import { Controller, Get, Post, Patch, Body, UseGuards, Request, Param, UnauthorizedException } from '@nestjs/common';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { UsersService } from './users.service';
 import { AuthService } from '../auth/auth.service';
@@ -60,5 +60,17 @@ export class UsersController {
       throw new UnauthorizedException('Access denied. Only Super Admins can assign roles.');
     }
     return this.usersService.updateRole(id, body.role);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Post('create-admin')
+  async createAdmin(
+    @Request() req: any,
+    @Body() body: { name: string; email: string; phone?: string; city?: string }
+  ) {
+    if (req.user.role !== 'SUPER_ADMIN') {
+      throw new UnauthorizedException('Access denied. Only Super Admins can register new administrators.');
+    }
+    return this.usersService.createAdmin(body);
   }
 }

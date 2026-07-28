@@ -10,7 +10,7 @@ import Link from 'next/link';
 type LoginRole = 'USER' | 'ADMIN';
 
 const DEFAULT_ROLE_REDIRECTS: Record<string, string> = {
-  SUPER_ADMIN: '/admin/users',
+  SUPER_ADMIN: '/super-admin',
   ADMIN: '/admin/dashboard',
   STAFF: '/admin/dashboard',
   OFFICER: '/admin/dashboard',

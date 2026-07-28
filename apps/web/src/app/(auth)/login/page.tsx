@@ -8,7 +8,7 @@ import Link from 'next/link';
 import { Navigation, LogIn, Mail, Lock, AlertCircle, UserRound, ChevronDown } from 'lucide-react';
 
 const ROLE_REDIRECTS: Record<string, string> = {
-  SUPER_ADMIN: '/admin/users',
+  SUPER_ADMIN: '/super-admin',
   ADMIN: '/admin/dashboard',
   STAFF: '/admin/dashboard',
   OFFICER: '/admin/dashboard',
