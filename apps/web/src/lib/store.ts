@@ -7,7 +7,7 @@ interface User {
   name: string;
   email?: string;
   phone?: string;
-  role: 'CITIZEN' | 'ADMIN' | 'STAFF';
+  role: 'CITIZEN' | 'ADMIN' | 'STAFF' | 'SUPER_ADMIN';
   city?: string;
   language?: string;
 }

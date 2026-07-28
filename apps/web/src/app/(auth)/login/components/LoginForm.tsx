@@ -10,15 +10,11 @@ import Link from 'next/link';
 type LoginRole = 'USER' | 'ADMIN';
 
 const DEFAULT_ROLE_REDIRECTS: Record<string, string> = {
+  SUPER_ADMIN: '/admin/users',
   ADMIN: '/admin/dashboard',
   STAFF: '/admin/dashboard',
   OFFICER: '/admin/dashboard',
   CITIZEN: '/',
-};
-
-const getRoleGroup = (role?: string): LoginRole => {
-  const normalizedRole = role?.toUpperCase();
-  return normalizedRole === 'ADMIN' || normalizedRole === 'STAFF' || normalizedRole === 'OFFICER' ? 'ADMIN' : 'USER';
 };
 
 const getLoginErrorMessage = (err: unknown) => {
@@ -30,7 +26,6 @@ const getLoginErrorMessage = (err: unknown) => {
 export default function LoginForm({ roleRedirect }: { roleRedirect?: Record<string, string> }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [selectedRole, setSelectedRole] = useState<LoginRole>('USER');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
@@ -44,18 +39,8 @@ export default function LoginForm({ roleRedirect }: { roleRedirect?: Record<stri
       const response = await api.post('/auth/login', {
         email,
         password,
-        role: selectedRole,
       });
       const { access_token, user } = response.data;
-
-      const accountRole = getRoleGroup(user.role);
-
-      if (accountRole !== selectedRole) {
-        setToken(null);
-        setUser(null);
-        setError(`This account is registered as ${accountRole === 'ADMIN' ? 'Admin' : 'User'}. Please select the correct role.`);
-        return;
-      }
 
       setToken(access_token);
       setUser(user);
@@ -75,22 +60,6 @@ export default function LoginForm({ roleRedirect }: { roleRedirect?: Record<stri
           <AlertCircle size={18} />{error}
         </div>
       )}
-      <div className="space-y-2">
-        <label className="text-sm font-bold text-[#000080]/60 uppercase tracking-wider ml-1">Role</label>
-        <div className="relative group">
-          <UserRound className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400 group-focus-within:text-[#FF9933] transition-colors" size={20} />
-          <select
-            required
-            className="w-full appearance-none bg-zinc-50 border border-zinc-200 rounded-2xl py-4 pl-12 pr-12 text-[#000080] focus:bg-white focus:ring-4 focus:ring-[#FF9933]/10 focus:border-[#FF9933] outline-none transition-all font-medium"
-            value={selectedRole}
-            onChange={e => setSelectedRole(e.target.value as LoginRole)}
-          >
-            <option value="USER">User</option>
-            <option value="ADMIN">Admin</option>
-          </select>
-          <ChevronDown className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-zinc-400 group-focus-within:text-[#FF9933] transition-colors" size={20} />
-        </div>
-      </div>
       <div className="space-y-2">
         <label className="text-sm font-bold text-[#000080]/60 uppercase tracking-wider ml-1">Email Address</label>
         <div className="relative group">

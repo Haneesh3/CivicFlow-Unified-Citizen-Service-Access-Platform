@@ -1,4 +1,5 @@
 import { PrismaClient } from '@prisma/client';
+import * as bcrypt from 'bcrypt';
 const prisma = new PrismaClient();
 
 async function main() {
@@ -139,7 +140,24 @@ async function main() {
     });
   }
 
-  console.log('Smart seed completed! Data is now permanent and safe.');
+  // Seeding Super Admin
+  const email = 'kandathhaneesh2k5@gmail.com';
+  const hashed = await bcrypt.hash('haneesh@260905', 10);
+  await prisma.user.upsert({
+    where: { email },
+    update: {
+      password: hashed,
+      role: 'SUPER_ADMIN'
+    },
+    create: {
+      email,
+      password: hashed,
+      name: 'Kandath Haneesh (Super Admin)',
+      role: 'SUPER_ADMIN',
+    }
+  });
+
+  console.log('Smart seed completed! Super Admin user is elevated and data is safe.');
 }
 
 main()

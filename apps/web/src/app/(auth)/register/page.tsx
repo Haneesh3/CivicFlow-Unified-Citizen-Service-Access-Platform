@@ -13,7 +13,6 @@ export default function RegisterPage() {
   const [password, setPassword] = useState('');
   const [name, setName] = useState('');
   const [loading, setLoading] = useState(false);
-  const [selectedRole, setSelectedRole] = useState<'CITIZEN' | 'ADMIN'>('CITIZEN');
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
   const router = useRouter();
@@ -29,7 +28,7 @@ export default function RegisterPage() {
         email,
         password,
         name,
-        role: selectedRole
+        role: 'CITIZEN'
       });
 
       const { access_token, user: apiUser } = response.data;
@@ -141,25 +140,7 @@ export default function RegisterPage() {
                 </div>
               </div>
 
-              <div className="space-y-2">
-                <label className="text-sm font-bold text-[#000080]/60 uppercase tracking-wider ml-1">Account Type</label>
-                <div className="grid grid-cols-2 gap-3">
-                  <button
-                    type="button"
-                    onClick={() => setSelectedRole('CITIZEN')}
-                    className={`flex items-center justify-center gap-2 rounded-2xl border px-4 py-3 text-sm font-semibold transition-all ${selectedRole === 'CITIZEN' ? 'border-[#000080] bg-[#000080] text-white' : 'border-zinc-200 bg-zinc-50 text-[#000080]'}`}
-                  >
-                    <User size={18} /> Citizen
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setSelectedRole('ADMIN')}
-                    className={`flex items-center justify-center gap-2 rounded-2xl border px-4 py-3 text-sm font-semibold transition-all ${selectedRole === 'ADMIN' ? 'border-[#FF9933] bg-[#FF9933] text-white' : 'border-zinc-200 bg-zinc-50 text-[#000080]'}`}
-                  >
-                    <ShieldCheck size={18} /> Admin
-                  </button>
-                </div>
-              </div>
+
 
               <div className="space-y-2">
                 <label className="text-sm font-bold text-[#000080]/60 uppercase tracking-wider ml-1">Password</label>

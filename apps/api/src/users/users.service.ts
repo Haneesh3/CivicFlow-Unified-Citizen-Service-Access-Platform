@@ -19,4 +19,31 @@ export class UsersService {
       data: { password: passwordHash },
     });
   }
+
+  async findAll() {
+    return this.prisma.user.findMany({
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        phone: true,
+        role: true,
+        city: true,
+        createdAt: true,
+      },
+      orderBy: { name: 'asc' }
+    });
+  }
+
+  async updateRole(id: string, role: any) {
+    return this.prisma.user.update({
+      where: { id },
+      data: { role },
+      select: {
+        id: true,
+        name: true,
+        role: true
+      }
+    });
+  }
 }

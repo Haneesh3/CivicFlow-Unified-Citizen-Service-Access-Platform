@@ -1,4 +1,4 @@
-import { Controller, Get, Patch, Body, UseGuards, Request } from '@nestjs/common';
+import { Controller, Get, Patch, Body, UseGuards, Request, Param, UnauthorizedException } from '@nestjs/common';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { UsersService } from './users.service';
 import { AuthService } from '../auth/auth.service';
@@ -38,5 +38,27 @@ export class UsersController {
     const hashedPassword = await bcrypt.hash(data.password, 10);
     await this.usersService.updatePassword(req.user.id, hashedPassword);
     return { message: 'Password updated successfully' };
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Get('all')
+  async getAllUsers(@Request() req: any) {
+    if (req.user.role !== 'SUPER_ADMIN') {
+      throw new UnauthorizedException('Access denied. Only Super Admins can access this list.');
+    }
+    return this.usersService.findAll();
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Patch(':id/role')
+  async updateRole(
+    @Request() req: any,
+    @Param('id') id: string,
+    @Body() body: { role: string }
+  ) {
+    if (req.user.role !== 'SUPER_ADMIN') {
+      throw new UnauthorizedException('Access denied. Only Super Admins can assign roles.');
+    }
+    return this.usersService.updateRole(id, body.role);
   }
 }

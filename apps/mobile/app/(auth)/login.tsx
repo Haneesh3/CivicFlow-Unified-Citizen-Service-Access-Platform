@@ -8,7 +8,6 @@ import { LogIn, Mail, Lock, Send, Eye, EyeOff } from 'lucide-react-native';
 export default function LoginScreen() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [selectedRole, setSelectedRole] = useState<'USER' | 'ADMIN'>('USER');
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const router = useRouter();
@@ -25,7 +24,6 @@ export default function LoginScreen() {
       const response = await api.post('/auth/login', {
         email,
         password,
-        role: selectedRole,
       });
 
       const { access_token, user } = response.data;
@@ -69,23 +67,7 @@ export default function LoginScreen() {
             <Text style={styles.welcomeTitle}>Welcome Back</Text>
             <Text style={styles.welcomeSubtitle}>Please enter your details to sign in.</Text>
 
-            <View style={styles.inputGroup}>
-              <Text style={styles.label}>ROLE</Text>
-              <View style={styles.roleSelectorRow}>
-                <TouchableOpacity
-                  style={[styles.roleOption, selectedRole === 'USER' && styles.roleOptionActive]}
-                  onPress={() => setSelectedRole('USER')}
-                >
-                  <Text style={[styles.roleOptionText, selectedRole === 'USER' && styles.roleOptionTextActive]}>User</Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={[styles.roleOption, selectedRole === 'ADMIN' && styles.roleOptionActive]}
-                  onPress={() => setSelectedRole('ADMIN')}
-                >
-                  <Text style={[styles.roleOptionText, selectedRole === 'ADMIN' && styles.roleOptionTextActive]}>Admin</Text>
-                </TouchableOpacity>
-              </View>
-            </View>
+
 
             <View style={styles.inputGroup}>
               <Text style={styles.label}>EMAIL ADDRESS</Text>

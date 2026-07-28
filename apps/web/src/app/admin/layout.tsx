@@ -27,7 +27,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   useEffect(() => {
     if (!hasHydrated) return;
 
-    const isAdminRole = user?.role === 'ADMIN' || user?.role === 'STAFF';
+    const isAdminRole = user?.role === 'ADMIN' || user?.role === 'STAFF' || user?.role === 'SUPER_ADMIN';
 
     if (!user || !isAdminRole) {
       logout();
@@ -54,6 +54,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     { name: 'Service Queue', icon: Briefcase, href: '/admin/services' },
     { name: 'Citizen Response', icon: MessageSquare, href: '/admin/response' },
     { name: 'Analytics', icon: Search, href: '/admin/analytics' },
+    ...(user?.role === 'SUPER_ADMIN' ? [{ name: 'Manage Users', icon: ShieldCheck, href: '/admin/users' }] : []),
     { name: 'Settings', icon: Settings, href: '/admin/settings' },
   ];
 
