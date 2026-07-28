@@ -171,10 +171,10 @@ export default function ReportIssuePage() {
           <CheckCircle2 size={56} className="animate-bounce" />
         </div>
         <div className="space-y-2">
-          <h2 className="text-3xl font-black text-[#000080]">Issue Reported!</h2>
+          <h2 className="text-3xl font-bold text-[#000080]">Issue Reported!</h2>
           <p className="text-zinc-500 font-medium">Thank you for being a responsible citizen. <br/>Officials have been notified.</p>
         </div>
-        <div className="pt-4 animate-pulse text-[#FF9933] font-black text-xs uppercase tracking-widest">Redirecting to Dashboard...</div>
+        <div className="pt-4 animate-pulse text-[#FF9933] font-bold text-xs uppercase tracking-widest">Redirecting to Dashboard...</div>
       </div>
     );
   }
@@ -195,7 +195,7 @@ export default function ReportIssuePage() {
           
           {/* Section: Visual Evidence */}
           <div className="space-y-4">
-            <label className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-400 ml-2">Visual Evidence (Highly Recommended)</label>
+            <label className="text-[10px] font-bold uppercase tracking-wider text-zinc-400 ml-2">Visual Evidence (Highly Recommended)</label>
             
             {imagePreview ? (
               <div className="relative group w-full h-64 rounded-[2rem] overflow-hidden shadow-2xl ring-8 ring-zinc-50 transition-all">
@@ -223,7 +223,7 @@ export default function ReportIssuePage() {
                     <Camera size={40} />
                   </div>
                   <div>
-                    <p className="font-black text-[#000080] text-xl">Capture or Upload Photo</p>
+                    <p className="font-bold text-[#000080] text-xl">Capture or Upload Photo</p>
                     <p className="text-xs text-zinc-400 font-bold uppercase tracking-widest mt-1">Photos help us resolve issues faster</p>
                   </div>
                 </div>
@@ -233,14 +233,14 @@ export default function ReportIssuePage() {
 
           {/* Section: Category */}
           <div className="space-y-4">
-            <label className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-400 ml-2">Issue Category</label>
+            <label className="text-[10px] font-bold uppercase tracking-wider text-zinc-400 ml-2">Issue Category</label>
             <div className="flex flex-wrap gap-2">
               {CATEGORIES.map(cat => (
                 <button
                   key={cat}
                   type="button"
                   onClick={() => setFormData({...formData, category: cat})}
-                  className={`px-6 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all border-2 ${
+                  className={`px-6 py-3 rounded-2xl text-[10px] font-bold uppercase tracking-widest transition-all border-2 ${
                     formData.category === cat 
                     ? 'bg-[#000080] text-white border-[#000080] shadow-lg' 
                     : 'bg-white text-zinc-400 border-zinc-100 hover:border-[#FF9933] hover:text-[#FF9933]'
@@ -254,7 +254,7 @@ export default function ReportIssuePage() {
 
           {/* Section: Description */}
           <div className="space-y-4">
-            <label className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-400 ml-2">Problem Description</label>
+            <label className="text-[10px] font-bold uppercase tracking-wider text-zinc-400 ml-2">Problem Description</label>
             <textarea 
               required
               placeholder="Please provide details about the issue (e.g. Broken pipe leaking water for 2 days...)"
@@ -266,7 +266,7 @@ export default function ReportIssuePage() {
 
           {/* Section: Location */}
           <div className="space-y-4">
-            <label className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-400 ml-2">Exact Location</label>
+            <label className="text-[10px] font-bold uppercase tracking-wider text-zinc-400 ml-2">Exact Location</label>
             <div className="relative group">
               <MapPin className="absolute left-6 top-1/2 -translate-y-1/2 text-zinc-300 group-focus-within:text-[#FF9933] transition-colors" size={24} />
               <input 
@@ -281,7 +281,7 @@ export default function ReportIssuePage() {
             
             {coords && (
               <div className="space-y-3 mt-4">
-                <label className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-400 ml-2 block">Map Preview</label>
+                <label className="text-[10px] font-bold uppercase tracking-wider text-zinc-400 ml-2 block">Map Preview</label>
                 <div className="w-full h-64 rounded-[2rem] overflow-hidden border border-zinc-200 shadow-inner relative">
                   <iframe
                     width="100%"
@@ -309,7 +309,7 @@ export default function ReportIssuePage() {
             <button 
               type="submit" 
               disabled={loading || !formData.category || !formData.description}
-              className="w-full bg-[#FF9933] text-white py-8 rounded-[2.5rem] font-black text-2xl flex items-center justify-center gap-4 hover:scale-[1.02] active:scale-95 transition-all shadow-2xl shadow-orange-100 disabled:opacity-20"
+              className="w-full bg-[#FF9933] text-white py-8 rounded-[2.5rem] font-bold text-2xl flex items-center justify-center gap-4 hover:scale-[1.02] active:scale-95 transition-all shadow-2xl shadow-orange-100 disabled:opacity-20"
             >
               {loading ? (
                 <div className="w-10 h-10 border-4 border-white/20 border-t-white rounded-full animate-spin"></div>

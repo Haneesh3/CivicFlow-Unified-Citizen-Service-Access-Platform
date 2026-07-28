@@ -124,7 +124,7 @@ export default function SuperAdminUsersDashboard() {
             <Users className="w-4 h-4 text-slate-950" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-black text-slate-900">{totalUsers}</div>
+            <div className="text-2xl font-bold text-slate-900">{totalUsers}</div>
             <p className="text-xs text-slate-500 mt-1">Registered accounts</p>
           </CardContent>
         </Card>
@@ -135,7 +135,7 @@ export default function SuperAdminUsersDashboard() {
             <UserCheck className="w-4 h-4 text-blue-600" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-black text-slate-900">{adminCount}</div>
+            <div className="text-2xl font-bold text-slate-900">{adminCount}</div>
             <p className="text-xs text-slate-500 mt-1">Authorized officers</p>
           </CardContent>
         </Card>
@@ -146,7 +146,7 @@ export default function SuperAdminUsersDashboard() {
             <ShieldIcon className="w-4 h-4 text-rose-600" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-black text-slate-900">{superAdminCount}</div>
+            <div className="text-2xl font-bold text-slate-900">{superAdminCount}</div>
             <p className="text-xs text-slate-500 mt-1">Full system control</p>
           </CardContent>
         </Card>
@@ -157,7 +157,7 @@ export default function SuperAdminUsersDashboard() {
             <Users className="w-4 h-4 text-green-600" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-black text-slate-900">{citizenCount}</div>
+            <div className="text-2xl font-bold text-slate-900">{citizenCount}</div>
             <p className="text-xs text-slate-500 mt-1">Public profiles</p>
           </CardContent>
         </Card>

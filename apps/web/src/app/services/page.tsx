@@ -839,10 +839,10 @@ export default function ServicesPage() {
         <div className="mb-12 text-center space-y-6">
            <div className="inline-flex items-center gap-2 bg-white border border-zinc-100 rounded-full px-5 py-2 shadow-sm text-[#000080]">
              <RenderIcon name={roleView === 'admin' ? 'shield' : 'user'} size={16} />
-             <span className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-400">Role</span>
-             <span className="text-xs font-black uppercase tracking-[0.2em] text-[#FF9933]">{pageCopy.badge}</span>
+             <span className="text-[10px] font-bold uppercase tracking-wider text-zinc-400">Role</span>
+             <span className="text-xs font-bold uppercase tracking-wider text-[#FF9933]">{pageCopy.badge}</span>
            </div>
-           <h2 className="text-5xl font-black text-[#000080] tracking-tight">{pageCopy.title} <span className="text-[#FF9933]">{pageCopy.accent}</span></h2>
+           <h2 className="text-5xl font-bold text-[#000080] tracking-tight">{pageCopy.title} <span className="text-[#FF9933]">{pageCopy.accent}</span></h2>
            <p className="text-zinc-500 text-lg max-w-2xl mx-auto">{pageCopy.description}</p>
            
            <div className="max-w-3xl mx-auto pt-6">
@@ -867,7 +867,7 @@ export default function ServicesPage() {
             <button
               key={cat}
               onClick={() => setActiveCategory(cat)}
-              className={`px-10 py-4 rounded-2xl text-xs font-black uppercase tracking-widest transition-all border-2 ${
+              className={`px-10 py-4 rounded-2xl text-xs font-bold uppercase tracking-widest transition-all border-2 ${
                 currentCategory === cat 
                 ? 'bg-[#000080] text-white border-[#000080] shadow-2xl shadow-navy/20 translate-y-[-2px]' 
                 : 'bg-white text-zinc-400 border-zinc-50 hover:border-[#FF9933] hover:text-[#FF9933]'
@@ -897,16 +897,16 @@ export default function ServicesPage() {
                 <div className={`w-20 h-20 ${service.bg} ${service.color} rounded-3xl flex items-center justify-center mb-10 group-hover:scale-110 transition-transform shadow-sm ring-8 ring-transparent group-hover:ring-zinc-50`}>
                   <RenderIcon name={service.iconKey} size={40} />
                 </div>
-                <span className="text-[10px] font-black uppercase tracking-[0.3em] text-[#FF9933] mb-2 block">{service.category}</span>
-                <h3 className="text-2xl font-black text-[#000080] mb-4 group-hover:text-[#FF9933] transition-colors leading-tight">{service.title}</h3>
+                <span className="text-[10px] font-bold uppercase tracking-widest text-[#FF9933] mb-2 block">{service.category}</span>
+                <h3 className="text-2xl font-bold text-[#000080] mb-4 group-hover:text-[#FF9933] transition-colors leading-tight">{service.title}</h3>
                 <p className="text-zinc-500 text-sm leading-relaxed line-clamp-3">{service.description}</p>
               </div>
               
               <div className="flex items-center justify-between pt-8 border-t border-zinc-50">
-                <div className="flex items-center gap-2 text-[#000080] font-black text-[10px] uppercase tracking-[0.2em]">
+                <div className="flex items-center gap-2 text-[#000080] font-bold text-[10px] uppercase tracking-wider">
                   {'action' in service ? service.action : 'Book Center'} <RenderIcon name="arrow-right" size={16} className="group-hover:translate-x-2 transition-transform" />
                 </div>
-                <div className="text-[10px] font-black text-zinc-200 tracking-widest uppercase">Verified</div>
+                <div className="text-[10px] font-bold text-zinc-200 tracking-widest uppercase">Verified</div>
               </div>
               <div className={`absolute -right-8 -bottom-8 w-32 h-32 ${service.bg} rounded-full opacity-0 group-hover:opacity-20 transition-opacity blur-3xl`}></div>
             </div>
@@ -915,7 +915,7 @@ export default function ServicesPage() {
 
         {filteredServices.length === 0 && (
           <div className="bg-white border border-zinc-100 rounded-[2rem] p-12 text-center shadow-sm">
-            <p className="text-[#000080] font-black text-xl">No services found</p>
+            <p className="text-[#000080] font-bold text-xl">No services found</p>
             <p className="text-zinc-500 mt-2">Try a different search or category.</p>
           </div>
         )}
@@ -939,11 +939,11 @@ export default function ServicesPage() {
                 </div>
                 <div>
                    <div className="flex items-center gap-3 mb-1">
-                      <span className="text-[10px] font-black uppercase tracking-[0.2em] text-[#FF9933]">{selectedService.category} Gateway</span>
+                      <span className="text-[10px] font-bold uppercase tracking-wider text-[#FF9933]">{selectedService.category} Gateway</span>
                       <span className="text-white/20">•</span>
-                      <span className="text-[10px] font-black uppercase tracking-[0.2em] text-white/50">{step === 1 ? 'Booking Form' : 'Success'}</span>
+                      <span className="text-[10px] font-bold uppercase tracking-wider text-white/50">{step === 1 ? 'Booking Form' : 'Success'}</span>
                    </div>
-                   <h3 className="text-3xl font-black">{selectedService.title}</h3>
+                   <h3 className="text-3xl font-bold">{selectedService.title}</h3>
                 </div>
               </div>
               <div className="absolute -right-20 -top-20 w-96 h-96 bg-white/5 rounded-full blur-[100px]"></div>
@@ -966,7 +966,7 @@ export default function ServicesPage() {
 
                       {/* Select Option */}
                       <div className="space-y-3">
-                        <label className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-400 ml-2 block text-left">Select Service Type *</label>
+                        <label className="text-[10px] font-bold uppercase tracking-wider text-zinc-400 ml-2 block text-left">Select Service Type *</label>
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                           {selectedService.options.map((opt) => (
                             <button
@@ -987,7 +987,7 @@ export default function ServicesPage() {
                                 ✓
                               </div>
                               <div>
-                                <p className="font-black text-base text-[#000080]">{opt.label}</p>
+                                <p className="font-bold text-base text-[#000080]">{opt.label}</p>
                                 <p className="text-[10px] text-zinc-400 font-bold uppercase tracking-wider mt-1">Time: {opt.totalTime}</p>
                               </div>
                             </button>
@@ -998,7 +998,7 @@ export default function ServicesPage() {
                       {/* Select Date and Slot */}
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                         <div className="space-y-3 text-left">
-                          <label className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-400 ml-2 block">Select Date *</label>
+                          <label className="text-[10px] font-bold uppercase tracking-wider text-zinc-400 ml-2 block">Select Date *</label>
                           <div className="relative">
                             <div className="absolute left-5 top-1/2 -translate-y-1/2 text-zinc-300 pointer-events-none">
                               <RenderIcon name="calendar" size={18} />
@@ -1015,11 +1015,11 @@ export default function ServicesPage() {
                               }}
                             />
                           </div>
-                          {holidayError && <p className="text-[10px] text-red-500 font-black mt-1 ml-2">{holidayError}</p>}
+                          {holidayError && <p className="text-[10px] text-red-500 font-bold mt-1 ml-2">{holidayError}</p>}
                         </div>
 
                         <div className="space-y-3 text-left">
-                          <label className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-400 ml-2 block">Select Time Slot *</label>
+                          <label className="text-[10px] font-bold uppercase tracking-wider text-zinc-400 ml-2 block">Select Time Slot *</label>
                           <select
                             required
                             disabled={!appointment.date || !!holidayError}
@@ -1040,7 +1040,7 @@ export default function ServicesPage() {
                         <div className="bg-orange-50/50 p-6 rounded-[2rem] border border-orange-100/50 space-y-4 text-left">
                           <div className="flex items-center gap-3">
                             <RenderIcon name="alert" size={20} className="text-[#FF9933]" />
-                            <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-[#FF9933]">Required Checklist</h4>
+                            <h4 className="text-[10px] font-bold uppercase tracking-wider text-[#FF9933]">Required Checklist</h4>
                           </div>
                           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                             {selectedOption.docs.map((doc) => (
@@ -1060,7 +1060,7 @@ export default function ServicesPage() {
                       {/* City Selector Header */}
                       <div className="flex items-center justify-between bg-zinc-50 p-5 rounded-2xl border border-zinc-100 text-left">
                         <div>
-                          <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-400">Nearest Service Center *</h4>
+                          <h4 className="text-[10px] font-bold uppercase tracking-wider text-zinc-400">Nearest Service Center *</h4>
                           <span className="text-[10px] text-zinc-500 font-bold mt-1 block">City: {activeCity}</span>
                         </div>
                         <select 

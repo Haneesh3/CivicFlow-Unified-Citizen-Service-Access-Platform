@@ -167,7 +167,7 @@ function TrackingContent() {
           ))}
         </div>
 
-        <h2 className="text-4xl font-black text-[#000080] mb-2">Track Your {trackLabel}</h2>
+        <h2 className="text-4xl font-bold text-[#000080] mb-2">Track Your {trackLabel}</h2>
         <p className="text-zinc-500 mb-12 max-w-md mx-auto">
           {trackType === 'complaint'
             ? 'Enter your unique Ticket ID to see the latest status and updates from the municipal corporation.'
@@ -205,19 +205,19 @@ function TrackingContent() {
         <div className="bg-white border border-zinc-100 rounded-[2.5rem] p-10 text-left shadow-2xl animate-fade-in space-y-8">
           <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between border-b border-zinc-100 pb-8">
             <div>
-              <span className="text-[10px] font-black uppercase tracking-[0.2em] text-[#FF9933] mb-2 block">Service Application</span>
-              <h3 className="text-2xl font-black text-[#000080]">{serviceApp.data?.serviceTitle || 'Digital Service Application'}</h3>
+              <span className="text-[10px] font-bold uppercase tracking-wider text-[#FF9933] mb-2 block">Service Application</span>
+              <h3 className="text-2xl font-bold text-[#000080]">{serviceApp.data?.serviceTitle || 'Digital Service Application'}</h3>
               <p className="text-zinc-500 text-sm mt-1">Reference ID {serviceApp.referenceId} • Submitted on {new Date(serviceApp.createdAt).toLocaleDateString()}</p>
             </div>
             <div className="flex flex-col items-start gap-3">
               {getStatusBadge(serviceApp.status)}
-              <div className="text-right text-xs uppercase tracking-[0.2em] text-zinc-400 font-bold">{serviceApp.data?.subService || 'General Service'}</div>
+              <div className="text-right text-xs uppercase tracking-wider text-zinc-400 font-bold">{serviceApp.data?.subService || 'General Service'}</div>
             </div>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="bg-slate-50 rounded-[2rem] p-6">
-              <p className="text-xs uppercase tracking-[0.2em] font-black text-zinc-400 mb-4">Applicant Details</p>
+              <p className="text-xs uppercase tracking-wider font-bold text-zinc-400 mb-4">Applicant Details</p>
               <div className="space-y-3 text-sm text-slate-700">
                 <div className="flex items-center gap-2"><User size={16} className="text-slate-400" /><span>{serviceApp.applicantName}</span></div>
                 <div className="flex items-center gap-2"><FileText size={16} className="text-slate-400" /><span>{serviceApp.applicantPhone}</span></div>
@@ -225,7 +225,7 @@ function TrackingContent() {
               </div>
             </div>
             <div className="bg-slate-50 rounded-[2rem] p-6">
-              <p className="text-xs uppercase tracking-[0.2em] font-black text-zinc-400 mb-4">Appointment & Center</p>
+              <p className="text-xs uppercase tracking-wider font-bold text-zinc-400 mb-4">Appointment & Center</p>
               <div className="space-y-3 text-sm text-slate-700">
                 <div className="flex items-center gap-2"><Calendar size={16} className="text-slate-400" /><span>{serviceApp.appointmentDate ? new Date(serviceApp.appointmentDate).toLocaleDateString() : 'Online'}</span></div>
                 <div className="flex items-center gap-2"><Clock size={16} className="text-slate-400" /><span>{serviceApp.appointmentSlot || 'No slot assigned'}</span></div>
@@ -236,14 +236,14 @@ function TrackingContent() {
 
           <div className="space-y-6">
             <div className="flex items-center justify-between">
-              <p className="text-xs uppercase tracking-[0.2em] font-black text-zinc-400">Service Timeline</p>
+              <p className="text-xs uppercase tracking-wider font-bold text-zinc-400">Service Timeline</p>
               <span className="text-xs text-zinc-500">{serviceApp.updates?.length || 0} updates</span>
             </div>
             <div className="space-y-4">
               {serviceApp.updates?.map((update: any) => (
                 <div key={update.id} className="rounded-[2rem] border border-zinc-100 p-5 bg-white shadow-sm">
                   <div className="flex items-center justify-between gap-3 mb-3">
-                    <div className="text-sm font-black text-[#000080] uppercase tracking-[0.15em]">{update.status}</div>
+                    <div className="text-sm font-bold text-[#000080] uppercase tracking-[0.15em]">{update.status}</div>
                     <div className="text-[11px] text-zinc-400 uppercase tracking-[0.18em]">{new Date(update.createdAt).toLocaleString()}</div>
                   </div>
                   <p className="text-sm text-slate-600 leading-relaxed">{update.message}</p>
@@ -258,11 +258,11 @@ function TrackingContent() {
         <div className="bg-white border border-zinc-100 rounded-[2.5rem] p-10 text-left shadow-2xl animate-fade-in space-y-8">
           <div className="flex justify-between items-start border-b border-zinc-100 pb-8">
             <div>
-              <span className="text-[10px] font-black uppercase tracking-[0.2em] text-[#FF9933] mb-2 block">Ticket Details</span>
-              <h3 className="text-2xl font-black text-[#000080]">{complaint.title}</h3>
+              <span className="text-[10px] font-bold uppercase tracking-wider text-[#FF9933] mb-2 block">Ticket Details</span>
+              <h3 className="text-2xl font-bold text-[#000080]">{complaint.title}</h3>
               <p className="text-zinc-500 text-sm mt-1">{complaint.category} • Reported on {new Date(complaint.createdAt).toLocaleDateString()}</p>
             </div>
-            <div className={`px-4 py-2 rounded-xl text-xs font-black uppercase tracking-widest ${
+            <div className={`px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-widest ${
               complaint.status === 'RESOLVED' ? 'bg-[#138808]/10 text-[#138808]' : 'bg-[#FF9933]/10 text-[#FF9933]'
             }`}>
               {complaint.status}
@@ -270,7 +270,7 @@ function TrackingContent() {
           </div>
 
           <div className="space-y-6">
-            <h4 className="text-xs font-black uppercase tracking-[0.2em] text-zinc-400">Resolution Progress</h4>
+            <h4 className="text-xs font-bold uppercase tracking-wider text-zinc-400">Resolution Progress</h4>
             
             <div className="relative pl-8 space-y-12">
               <div className="absolute left-[11px] top-2 bottom-2 w-0.5 bg-zinc-100"></div>
@@ -317,7 +317,7 @@ function TrackingContent() {
                 <div className="space-y-4">
                   <div className="flex justify-between items-center">
                     <div>
-                      <h4 className="text-sm font-black uppercase tracking-[0.2em] text-[#000080]">Reopen Ticket</h4>
+                      <h4 className="text-sm font-bold uppercase tracking-wider text-[#000080]">Reopen Ticket</h4>
                       <p className="text-xs text-zinc-500">Explain why the issue remains unresolved.</p>
                     </div>
                   </div>
@@ -347,7 +347,7 @@ function TrackingContent() {
                 <div className="space-y-4">
                   <div className="flex items-center justify-between">
                     <div>
-                      <h4 className="text-sm font-black uppercase tracking-[0.2em] text-[#000080]">Citizen Feedback Submitted</h4>
+                      <h4 className="text-sm font-bold uppercase tracking-wider text-[#000080]">Citizen Feedback Submitted</h4>
                       <p className="text-xs text-zinc-500">Thank you for sharing your experience.</p>
                     </div>
                     <button onClick={() => setShowReopenForm(true)} className="flex items-center gap-2 rounded-full border border-rose-200 bg-white px-4 py-2 text-sm font-semibold text-rose-600 hover:bg-rose-50 transition-colors">
@@ -369,7 +369,7 @@ function TrackingContent() {
                 <div className="space-y-4">
                   <div className="flex items-center justify-between">
                     <div>
-                      <h4 className="text-sm font-black uppercase tracking-[0.2em] text-[#000080]">Citizen feedback</h4>
+                      <h4 className="text-sm font-bold uppercase tracking-wider text-[#000080]">Citizen feedback</h4>
                       <p className="text-xs text-zinc-500">Rate the resolution and share a short note.</p>
                     </div>
                     <button onClick={() => setShowReopenForm(true)} className="flex items-center gap-2 rounded-full border border-rose-200 bg-white px-4 py-2 text-sm font-semibold text-rose-600 hover:bg-rose-50 transition-colors">

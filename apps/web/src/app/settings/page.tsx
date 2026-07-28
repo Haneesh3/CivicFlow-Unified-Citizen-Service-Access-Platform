@@ -90,7 +90,7 @@ export default function SettingsPage() {
           </Link>
           <div>
             <h1 className="text-xl font-bold text-[#000080] tracking-tight leading-none">Settings</h1>
-            <p className="text-[8px] uppercase tracking-[0.2em] text-[#FF9933] font-bold mt-1">Manage your account</p>
+            <p className="text-[8px] uppercase tracking-wider text-[#FF9933] font-bold mt-1">Manage your account</p>
           </div>
         </div>
       </nav>
@@ -115,7 +115,7 @@ export default function SettingsPage() {
           <div className="md:col-span-3 space-y-8">
             <div className="bg-white rounded-[2.5rem] p-10 shadow-xl border border-zinc-50">
               <div className="mb-10">
-                <h2 className="text-2xl font-black text-[#000080]">Edit Profile</h2>
+                <h2 className="text-2xl font-bold text-[#000080]">Edit Profile</h2>
                 <p className="text-zinc-400 text-sm">Update your personal information to keep your profile current.</p>
               </div>
 
@@ -131,7 +131,7 @@ export default function SettingsPage() {
               <form onSubmit={handleSave} className="space-y-8">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                   <div className="space-y-2">
-                    <label className="text-[10px] font-black uppercase tracking-widest text-zinc-400 ml-1">Full Name</label>
+                    <label className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 ml-1">Full Name</label>
                     <div className="relative group">
                       <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-zinc-400 group-focus-within:text-[#000080] transition-colors">
                         <User size={18} />
@@ -148,7 +148,7 @@ export default function SettingsPage() {
                   </div>
 
                   <div className="space-y-2">
-                    <label className="text-[10px] font-black uppercase tracking-widest text-zinc-400 ml-1">Email Address</label>
+                    <label className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 ml-1">Email Address</label>
                     <div className="relative group">
                       <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-zinc-400 group-focus-within:text-[#000080] transition-colors">
                         <Mail size={18} />
@@ -165,7 +165,7 @@ export default function SettingsPage() {
                   </div>
 
                   <div className="space-y-2">
-                    <label className="text-[10px] font-black uppercase tracking-widest text-zinc-400 ml-1">Phone Number</label>
+                    <label className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 ml-1">Phone Number</label>
                     <div className="relative group">
                       <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-zinc-400 group-focus-within:text-[#000080] transition-colors">
                         <Phone size={18} />
@@ -185,7 +185,7 @@ export default function SettingsPage() {
                   <button
                     type="submit"
                     disabled={loading}
-                    className="bg-[#000080] text-white px-10 py-4 rounded-2xl font-black flex items-center gap-3 hover:bg-[#000060] disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-xl shadow-navy/20"
+                    className="bg-[#000080] text-white px-10 py-4 rounded-2xl font-bold flex items-center gap-3 hover:bg-[#000060] disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-xl shadow-navy/20"
                   >
                     {loading ? (
                       <Loader2 size={20} className="animate-spin" />
