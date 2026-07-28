@@ -73,6 +73,7 @@ model Complaint {
   imageUrl    String?         // Added for visual evidence
   rating      Int?
   ratingComment String?
+  city        String?
   createdAt   DateTime        @default(now())
   updatedAt   DateTime        @default(now()) @updatedAt
 
@@ -178,6 +179,7 @@ model ServiceApplication {
   referenceId     String            @unique
   appointmentDate DateTime?
   appointmentSlot String?
+  city            String?
   createdAt       DateTime          @default(now())
   updatedAt       DateTime          @default(now()) @updatedAt
 

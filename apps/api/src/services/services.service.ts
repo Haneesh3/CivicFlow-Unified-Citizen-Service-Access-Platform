@@ -43,6 +43,7 @@ export class ServicesService {
     const { serviceTitle, subService } = data;
 
     // Auto-update user's profile city if the selected center city matches coordinates
+    let resolvedCity = 'Delhi';
     try {
       if (serviceCenterId) {
         const center = await this.prisma.serviceCenter.findUnique({
@@ -50,6 +51,7 @@ export class ServicesService {
         });
         if (center && center.lat && center.lng) {
           const detectedCity = this.getCityFromCoords(center.lat, center.lng);
+          resolvedCity = detectedCity;
           const user = await this.prisma.user.findUnique({ where: { id: userId } });
           if (user && (!user.city || user.city.toLowerCase() !== detectedCity.toLowerCase())) {
             await this.prisma.user.update({
@@ -75,6 +77,7 @@ export class ServicesService {
         appointmentDate: appointmentDate ? new Date(appointmentDate) : null,
         appointmentSlot,
         userId,
+        city: resolvedCity,
       },
     });
 
@@ -122,11 +125,9 @@ export class ServicesService {
   async findAllApplications(user?: any) {
     const whereClause: any = {};
     if (user && user.role === 'ADMIN' && user.city) {
-      whereClause.user = {
-        city: {
-          equals: user.city,
-          mode: 'insensitive'
-        }
+      whereClause.city = {
+        equals: user.city,
+        mode: 'insensitive'
       };
     }
 

@@ -58,8 +58,8 @@ export class ComplaintsService {
     }
 
     // Auto-update user's profile city if not already set or mismatch
+    const detectedCity = this.getCityFromCoords(latitude, longitude);
     try {
-      const detectedCity = this.getCityFromCoords(latitude, longitude);
       const user = await this.prisma.user.findUnique({ where: { id: userId } });
       if (user && (!user.city || user.city.toLowerCase() !== detectedCity.toLowerCase())) {
         await this.prisma.user.update({
@@ -74,8 +74,8 @@ export class ComplaintsService {
     const complaintId = uuid();
 
     await this.prisma.$executeRaw`
-      INSERT INTO "Complaint" (id, title, description, category, status, "userId", address, "updatedAt", geom)
-      VALUES (${complaintId}, ${title}, ${description}, ${category}, 'SUBMITTED', ${userId}, ${address}, now(), ST_SetSRID(ST_MakePoint(${longitude}, ${latitude}), 4326))
+      INSERT INTO "Complaint" (id, title, description, category, status, "userId", address, "updatedAt", geom, city)
+      VALUES (${complaintId}, ${title}, ${description}, ${category}, 'SUBMITTED', ${userId}, ${address}, now(), ST_SetSRID(ST_MakePoint(${longitude}, ${latitude}), 4326), ${detectedCity})
     `;
 
     await this.complaintActivityService.logActivity(complaintId, 'created', {
@@ -92,11 +92,9 @@ export class ComplaintsService {
   async findAll(user?: any) {
     const whereClause: any = {};
     if (user && user.role === 'ADMIN' && user.city) {
-      whereClause.user = {
-        city: {
-          equals: user.city,
-          mode: 'insensitive'
-        }
+      whereClause.city = {
+        equals: user.city,
+        mode: 'insensitive'
       };
     }
 
