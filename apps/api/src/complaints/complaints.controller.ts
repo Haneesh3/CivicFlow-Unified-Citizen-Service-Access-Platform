@@ -18,9 +18,10 @@ export class ComplaintsController {
     return this.complaintsService.create(req.user.id, createComplaintDto);
   }
 
+  @UseGuards(JwtAuthGuard)
   @Get()
-  findAll() {
-    return this.complaintsService.findAll();
+  findAll(@Request() req: any) {
+    return this.complaintsService.findAll(req.user);
   }
 
   @Get('nearby')

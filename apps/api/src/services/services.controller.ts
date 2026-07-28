@@ -25,8 +25,8 @@ export class ServicesController {
 
   @UseGuards(JwtAuthGuard)
   @Get('applications/all')
-  findAllApplications() {
-    return this.servicesService.findAllApplications();
+  findAllApplications(@Request() req: any) {
+    return this.servicesService.findAllApplications(req.user);
   }
 
   @UseGuards(JwtAuthGuard)

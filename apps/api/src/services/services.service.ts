@@ -77,8 +77,19 @@ export class ServicesService {
     });
   }
 
-  async findAllApplications() {
+  async findAllApplications(user?: any) {
+    const whereClause: any = {};
+    if (user && user.role === 'ADMIN' && user.city) {
+      whereClause.user = {
+        city: {
+          equals: user.city,
+          mode: 'insensitive'
+        }
+      };
+    }
+
     return this.prisma.serviceApplication.findMany({
+      where: whereClause,
       include: {
         updates: {
           orderBy: { createdAt: 'desc' }
@@ -87,7 +98,8 @@ export class ServicesService {
           select: {
             name: true,
             email: true,
-            phone: true
+            phone: true,
+            city: true
           }
         }
       },

@@ -55,8 +55,19 @@ export class ComplaintsService {
     });
   }
 
-  async findAll() {
+  async findAll(user?: any) {
+    const whereClause: any = {};
+    if (user && user.role === 'ADMIN' && user.city) {
+      whereClause.user = {
+        city: {
+          equals: user.city,
+          mode: 'insensitive'
+        }
+      };
+    }
+
     return this.prisma.complaint.findMany({
+      where: whereClause,
       include: {
         updates: {
           orderBy: { createdAt: 'desc' }
